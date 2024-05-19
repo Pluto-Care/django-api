@@ -1,0 +1,13 @@
+.vscode
+.env
+.venv/
+venv/
+venv
+
+db/
+key.bin
+.tar.gz
+
+# django
+__pycache__/
+migrations/
