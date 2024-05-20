@@ -50,6 +50,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
     "core.middlewares.APIRequestFormatMiddleware",
+    "core.middlewares.HeaderRequestedByMiddleware",
     "users.users_app_tokens.middlewares.AppTokenMiddleware",
     "core.middlewares.RequestOriginMiddleware",
     "users.users_sessions.middlewares.SessionMiddleware",

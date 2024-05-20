@@ -60,9 +60,9 @@ class RequestOriginMiddleware:
         # Run on API requests only
         if request.path.startswith('/api'):
             # If Token authentication is used that means
-            # the API is accessed by android or iOS app.
+            # the API is accessed by a non-web application.
             # In that case, we don't need to check the origin.
-            # Otherwise check the origin header!
+            # OTHERWISE check the origin header!
             if request.active_token is None:
                 if not self.validate_origin_header(request):
                     error = ErrorMessage(
@@ -86,3 +86,33 @@ class RequestOriginMiddleware:
         if request.headers.get('Origin') in ALLOW_ORIGINS:
             return True
         return False
+
+
+class HeaderRequestedByMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+
+        response = self.get_response(request)
+        # Code to be executed for each request/response after
+        # the view is called.
+        return response
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        # This gets executed before the view.
+        # Run on API requests only
+        if request.path.startswith('/api'):
+            # If 'X-Requested-By' header is present and not set to 'web'
+            # then token based authentication is used. In such case,
+            # provide 'Authorization' header with token.
+            if 'HTTP_X_REQUESTED_BY' in request.META:
+                request.requested_by = request.META['HTTP_X_REQUESTED_BY']
+            else:
+                request.requested_by = 'web'
+
+
+def is_web(request):
+    return request.requested_by == 'web'
