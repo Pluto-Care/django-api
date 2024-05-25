@@ -1,16 +1,18 @@
 from django.db import IntegrityError
 from django.utils.encoding import force_str
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from utils.error_handling.error_message import ErrorMessage
 from decouple import config
 from core.middlewares import is_web
 # Twilio
-from twilio import twiml
+from twilio.request_validator import RequestValidator
+from twilio.twiml.voice_response import VoiceResponse
 from twilio.rest import Client
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VoiceGrant
+from .decorators import validate_twilio_request
 # User Imports
 from users.permissions import HasSessionOrTokenActive
 from users.api import get_request_user
@@ -40,28 +42,40 @@ def grant_twilio_token(request):
     api_key = config('TWILIO_API_KEY')
     api_secret = config('TWILIO_API_KEY_SECRET')
 
-    token = AccessToken(account_sid, api_key, api_secret,
-                        identity=get_request_user(request).email,
-                        ttl=3600)
+    token = AccessToken(
+        account_sid=account_sid,
+        signing_key_sid=api_key,
+        secret=api_secret,
+        identity=get_request_user(request).email,
+        ttl=3600
+    )
 
     # add grants to token
-    token.add_grant(VoiceGrant(incoming_allow=True,
-                    push_credential_sid=config('TWILIO_PUSH_CREDENTIAL_SID'),
-                    outgoing_application_sid=config(
-                        'TWILIO_OUTGOING_APPLICATION_SID')
+    token.add_grant(VoiceGrant(
+        incoming_allow=False,
+        push_credential_sid=config('TWILIO_PUSH_CREDENTIAL_SID'),
+        outgoing_application_sid=config('TWILIO_OUTGOING_APPLICATION_SID')
     ))
 
     return JsonResponse({"token": token.to_jwt()}, status=200, safe=False)
 
 
 @api_view(['POST'])
-@permission_classes([HasSessionOrTokenActive])
+@validate_twilio_request
 def twiml(request):
-    voice_response = twiml.VoiceResponse()
+    data = dict(request.data)
 
-    if not hasattr(request.data, 'to'):
-        return Response(ErrorMessage('to is required'), status=400)
+    if 'To' not in data:
+        return ErrorMessage(
+            title='Invalid data provided',
+            detail='to is required',
+            status=400,
+            instance=request.build_absolute_uri()
+        ).to_response()
 
-    print(request.data)
-
-    return Response(status=400)
+    vr = VoiceResponse()
+    vr.dial(
+        caller_id=config('TWILIO_PHONE_NUMBER'),
+        answer_on_bridge=True
+    ).number(data['To'][0])
+    return HttpResponse(vr.to_xml(), content_type='text/xml')
