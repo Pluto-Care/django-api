@@ -1,13 +1,8 @@
-from django.db import IntegrityError
-from django.utils.encoding import force_str
 from django.http import JsonResponse, HttpResponse
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 from utils.error_handling.error_message import ErrorMessage
 from decouple import config
-from core.middlewares import is_web
 # Twilio
-from twilio.request_validator import RequestValidator
 from twilio.twiml.voice_response import VoiceResponse
 from twilio.rest import Client
 from twilio.jwt.access_token import AccessToken
