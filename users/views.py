@@ -128,7 +128,7 @@ def logout(request):
     # Delete session or token
     if is_web(request):
         delete_session(get_active_session(request).user,
-                    get_active_session(request).id)
+                       get_active_session(request).id)
     else:
         delete_app_token(get_active_token(request).user,
                          get_active_token(request).id)

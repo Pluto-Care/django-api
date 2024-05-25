@@ -31,7 +31,7 @@ run:
 	.venv/bin/python manage.py runserver 0.0.0.0:8000
 
 ngrok:
-	ngrok http http://localhost:8000
+	ngrok http --domain=decent-annually-roughy.ngrok-free.app http://localhost:8000
 
 su:
 	.venv/bin/python manage.py createsuperuser
