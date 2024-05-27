@@ -1,4 +1,3 @@
-from django.db import IntegrityError
 from django.utils.encoding import force_str
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -12,37 +11,10 @@ from .users_sessions.utils import get_active_session
 from .users_app_tokens.api import create_app_token, get_last_token_session_details, delete_app_token
 from .users_app_tokens.utils import get_active_token
 # TOTP Imports
-from .users_totp.api import has_totp, authenticate_totp
+from .users_totp.api import has_totp, authenticate_totp, create_mfa_join_token
 # User Imports
-from .models import User
 from .serializers import UserSerializer, LoginSerializer
 from .permissions import HasSessionOrTokenActive
-
-
-@api_view(['POST'])
-def signup(request):
-    # Validate request data
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        # Create user
-        try:
-            user = User.objects.create_user(**serializer.validated_data)
-            return Response(data=UserSerializer(user).data, status=201)
-        except IntegrityError:
-            return ErrorMessage(
-                detail='User with this email already exists.',
-                status=400,
-                instance=request.build_absolute_uri(),
-                title='Invalid data provided'
-            ).to_response()
-    errors = serializer.errors
-    err_msg = ErrorMessage(
-        detail=errors,
-        status=400,
-        instance=request.build_absolute_uri(),
-        title='Invalid data provided'
-    )
-    return err_msg.to_response()
 
 
 @api_view(['POST'])
@@ -59,7 +31,7 @@ def login(request):
             if 'token' not in request.data:
                 return ErrorMessage(
                     detail="TOTP token is required.",
-                    status=400,
+                    status=401,
                     instance=request.build_absolute_uri(),
                     title='Invalid credentials',
                 ).to_response()
@@ -67,10 +39,22 @@ def login(request):
             if not authenticate_totp(user, force_str(request.data['token']), totp_row):
                 return ErrorMessage(
                     detail="TOTP is invalid.",
-                    status=400,
+                    status=401,
                     instance=request.build_absolute_uri(),
                     title='Invalid credentials',
                 ).to_response()
+        else:
+            # Create a MFA Join Token
+            mfa_join_token, _ = create_mfa_join_token(user, request)
+            response = Response(
+                data={
+                    "mfa_join_token": mfa_join_token,
+                    "detail": "MFA is required.",
+                    "reason": "MFA_REQUIRED"
+                },
+                status=202
+            )
+            return response
         # Get last session details
         last_session = get_last_session_details(user)  # already serialized
         last_token_session = get_last_token_session_details(
@@ -129,6 +113,12 @@ def logout(request):
     if is_web(request):
         delete_session(get_active_session(request).user,
                        get_active_session(request).id)
+        response = Response(status=204)
+        response.delete_cookie(
+            key=config('AUTH_COOKIE_NAME', default='auth'),
+            domain=config('AUTH_COOKIE_DOMAIN', default='localhost')
+        )
+        return response
     else:
         delete_app_token(get_active_token(request).user,
                          get_active_token(request).id)

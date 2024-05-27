@@ -3,26 +3,37 @@ from django.utils.timezone import now
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from users.permissions import HasSessionOrTokenActive
-from .models import Totp
+from .models import Totp, MFAJoinToken
+from .permissions import HasMFAJoinToken
 from users.users_utils.active_user import get_active_user
 
 
 @api_view(['POST'])
-@permission_classes([HasSessionOrTokenActive])
+@permission_classes([HasSessionOrTokenActive | HasMFAJoinToken])
 def totp_init(request):
+    app_name = 'Pluto%20Health'
+    # Get user
+    user = get_active_user(request)
+    if user is None:
+        mfa_join_token = MFAJoinToken.objects.verify_token(
+            request.data['mfa_join_token'], request)
+        if mfa_join_token is None:
+            return Response(data={'detail': 'Invalid MFA Join Token', 'code': 'U-TOTP400'}, status=400)
+        user = mfa_join_token.user
     # Create TOTP
-    new_totp = Totp.objects.create_totp(get_active_user(request))
+    new_totp = Totp.objects.create_totp(user)
     if new_totp is None:
         return Response(data={'detail': 'TOTP is already enabled', 'code': 'U-TOTP401'}, status=400)
     key, backup_codes, _ = new_totp
     return Response(data={
         'key': key,
-        'backup_codes': backup_codes
+        'backup_codes': backup_codes,
+        'provision': f"otpauth://totp/{app_name}:{user.email.replace('@','%40')}?secret={key}&issuer={app_name}"
     }, status=201)
 
 
 @api_view(['POST'])
-@permission_classes([HasSessionOrTokenActive])
+@permission_classes([HasSessionOrTokenActive | HasMFAJoinToken])
 def totp_enable(request):
     """ Enable TOTP for the user after user initiates the TOTP.
 
@@ -35,14 +46,24 @@ def totp_enable(request):
         return Response(data={'detail': 'Invalid token', 'code': 'U-TOTP400'}, status=400)
     # Try to authenticate the user
     try:
+        # Get user
+        user = get_active_user(request)
+        if user is None:
+            mfa_join_token = MFAJoinToken.objects.verify_token(
+                request.data['mfa_join_token'], request)
+            if mfa_join_token is None:
+                return Response(data={'detail': 'Invalid MFA Join Token', 'code': 'U-TOTP400'}, status=400)
+            user = mfa_join_token.user
         # If authenticated, totp object will be returned otherwise None
-        totp = Totp.objects.authenticate(get_active_user(request), token)
+        totp = Totp.objects.authenticate(user, token)
         # Only enable if the status is initialized
         # Disabled totp's cannot be enabled again
         if totp:
             if totp.status == 'initialized':
                 totp.status = 'enabled'
                 totp.save()
+                MFAJoinToken.objects.consume_token(
+                    request.data['mfa_join_token'])
             return Response(status=204)
         return Response(data={'detail': 'Invalid token', 'code': 'U-TOTP400'}, status=400)
     except Totp.DoesNotExist:

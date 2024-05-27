@@ -4,6 +4,7 @@ from core.middlewares import is_web
 from .users_sessions.utils import get_active_session
 # App Token Imports
 from .users_app_tokens.utils import get_active_token
+from .serializers import UserSerializer
 
 
 def get_user(email):
@@ -33,3 +34,31 @@ def get_request_user(request):
     if app_token is not None:
         return app_token.user
     return None
+
+
+def add_user(email, password, first_name, last_name, serilized=False):
+    """
+    Add a new User
+
+    Args:
+        email (str): User email
+        password (str): User password
+        first_name (str): User first name
+        last_name (str): User last name
+        serilized (bool, optional): Return serialized User. Defaults to False.
+
+    Returns: User or None
+    """
+    try:
+        account = User.objects.create_user(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+        if serilized:
+            return UserSerializer(data=account).data
+        else:
+            return account
+    except Exception as e:
+        raise Exception(e)

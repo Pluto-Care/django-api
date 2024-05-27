@@ -53,7 +53,6 @@ class APILogMiddleware:
             if 'instance' in r and 'status' in r and 'code' in r:
                 r['code'] = str(log_obj.id)
                 response.content = json.dumps(r)
-                print(response.content)
         except json.JSONDecodeError:
             pass
         # Return response

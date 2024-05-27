@@ -2,7 +2,8 @@ import pyotp
 from datetime import timedelta
 from django.db import models
 from django.utils.timezone import now
-from .utils import generate_backup_codes, KEY_PATH
+from .utils import generate_backup_codes, KEY_PATH, generate_token, hash_this, getClientIP, getUserAgent
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from security.encryption import encrypt, decrypt
 from django.db.models import Q
 
@@ -144,5 +145,44 @@ class TotpManager(models.Manager):
             totp_row.save()
             # Return the new backup codes
             return backup_codes
+        except Exception as e:
+            return None
+
+
+class MFAJoinTokenManager(models.Manager):
+    def __init__(self):
+        super().__init__()
+
+    def create_token(self, user, request):
+        # Delete previous
+        self.filter(user=user).delete()
+        # Create new
+        token = generate_token()
+        mfa_token = self.create(
+            user=user,
+            token=hash_this(token),
+            ip=getClientIP(request),
+            ua=getUserAgent(request)
+        )
+        return urlsafe_base64_encode(token.encode("ascii")), mfa_token
+
+    def verify_token(self, token, request):
+        try:
+            token = urlsafe_base64_decode(token).decode("ascii")
+            mfa_token = self.select_related('user').get(token=hash_this(token), ip=getClientIP(
+                request), ua=getUserAgent(request))
+            if mfa_token.expire_at < now():
+                mfa_token.delete()
+                return None
+            return mfa_token
+        except Exception as e:
+            return None
+
+    def consume_token(self, token):
+        try:
+            token = urlsafe_base64_decode(token).decode("ascii")
+            mfa_token = self.get(token=hash_this(token))
+            mfa_token.delete()
+            return mfa_token
         except Exception as e:
             return None

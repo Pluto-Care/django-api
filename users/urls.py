@@ -5,7 +5,6 @@ from . import views
 api/user/
 """
 urlpatterns = [
-    path('create/', views.signup),
     path('login/', views.login),
     path('logout/', views.logout),
     path('me/', views.me),

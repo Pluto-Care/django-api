@@ -14,7 +14,7 @@
 #
 ##########################################################
 
-from .models import Totp
+from .models import Totp, MFAJoinToken
 from django.db.models import Q
 
 
@@ -52,3 +52,16 @@ def authenticate_totp(user, token, totp_row=None):
         if totp_row is None:
             return False
     return True if Totp.objects.authenticate(user, token, totp_row) else False
+
+
+def create_mfa_join_token(user, request):
+    """
+    Create a new MFA join token
+
+    Args:
+        user (User): Model object
+        request (HTTPRequest)
+
+    Returns: Tuple(token (str), MFAJoinToken)
+    """
+    return MFAJoinToken.objects.create_token(user, request)
