@@ -33,15 +33,15 @@ def login(request):
                     detail="TOTP token is required.",
                     status=401,
                     instance=request.build_absolute_uri(),
-                    title='Invalid credentials',
+                    title='2FA code is required',
                 ).to_response()
             # Authenticate TOTP
             if not authenticate_totp(user, force_str(request.data['token']), totp_row):
                 return ErrorMessage(
-                    detail="TOTP is invalid.",
+                    detail="TOTP is incorrect.",
                     status=401,
                     instance=request.build_absolute_uri(),
-                    title='Invalid credentials',
+                    title='2FA code is incorrect',
                 ).to_response()
         else:
             # Create a MFA Join Token
