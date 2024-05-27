@@ -4,6 +4,7 @@ from .managers import LogManager
 
 
 class ApiCallLog(models.Model):
+    id = models.UUIDField(unique=True, primary_key=True)
     # API URL that the user is trying to access
     url = models.CharField(max_length=255)
     # Response brief for success or error

@@ -41,8 +41,20 @@ class APILogMiddleware:
                     user=content['user']['email']))
             else:
                 log = LogResponse(status=response.status_code)
-        ApiCallLog.objects.create_log(
+        log_obj = ApiCallLog.objects.create_log(
             request=request,
             response=log.serialize(),
         )
+        # check if response has key 'instance', 'status' and 'code'
+        # to see if it is an error response. If it is, then set 'code'
+        # as log_id
+        try:
+            r = json.loads(response.content.decode('utf8'))
+            if 'instance' in r and 'status' in r and 'code' in r:
+                r['code'] = str(log_obj.id)
+                response.content = json.dumps(r)
+                print(response.content)
+        except json.JSONDecodeError:
+            pass
+        # Return response
         return response

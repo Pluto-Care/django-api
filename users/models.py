@@ -7,7 +7,8 @@ import bcrypt
 class User(models.Model):
     id = models.UUIDField(unique=True, primary_key=True)
     password = models.CharField(max_length=150)
-    email = models.CharField(max_length=150, unique=True)
+    email = models.CharField(
+        max_length=150, unique=True, null=True, blank=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     is_active = models.BooleanField(default=True)

@@ -1,4 +1,5 @@
 import json
+import uuid
 from django.db import models
 from users.users_sessions.utils import get_active_session
 from users.users_app_tokens.utils import get_active_token
@@ -21,6 +22,7 @@ class LogManager(models.Manager):
         session = get_active_session(request)
         app_token = get_active_token(request)
         log = self.model(
+            id=uuid.uuid4(),
             url=request.get_full_path(),
             status=status,
             context=json.dumps(response['m'] if hasattr(
@@ -31,6 +33,7 @@ class LogManager(models.Manager):
             ua=getUserAgent(request)
         )
         log.save()
+        return log
 
 
 # Get Client IP Address
