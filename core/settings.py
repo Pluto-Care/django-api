@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'users.users_totp',
     'users.users_forgot_password',
     'users.users_app_tokens',
+
+    'organizations',
 ]
 
 MIDDLEWARE = [

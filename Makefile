@@ -1,6 +1,6 @@
 # Only to be used in development environment
 
-apps := users users_sessions users_totp logs users_forgot_password users_app_tokens
+apps := users users_sessions users_totp logs users_forgot_password users_app_tokens organizations
 
 .PHONY: all
 
@@ -35,3 +35,6 @@ ngrok:
 
 su:
 	.venv/bin/python manage.py createsuperuser
+
+org:
+	.venv/bin/python manage.py add_organization
