@@ -34,14 +34,16 @@ def login(request):
                     status=401,
                     instance=request.build_absolute_uri(),
                     title='2FA code is required',
+                    code='TOTPRequired'
                 ).to_response()
             # Authenticate TOTP
             if not authenticate_totp(user, force_str(request.data['token']), totp_row):
                 return ErrorMessage(
-                    detail="TOTP is incorrect.",
+                    detail="Provided TOTP code or backup code is incorrect. Please try again.",
                     status=401,
                     instance=request.build_absolute_uri(),
                     title='2FA code is incorrect',
+                    code='TOTPIncorrect'
                 ).to_response()
         else:
             # Create a MFA Join Token
@@ -102,6 +104,7 @@ def login(request):
         status=400,
         instance=request.build_absolute_uri(),
         title='Invalid credentials',
+        code='LoginSerializedErrors'
     )
     return err_msg.to_response()
 
@@ -143,5 +146,6 @@ def me(request):
         detail='No active session or token found.',
         status=400,
         instance=request.build_absolute_uri(),
-        title='Invalid request'
+        title='Invalid request',
+        code='NoActiveSessionOrToken'
     ).to_response()
