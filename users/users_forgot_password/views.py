@@ -37,7 +37,7 @@ def forgot_password(request):
             subject='Reset your password'
         )
     # Send empty success response
-    return Response(status=204)
+    return Response(status=200)
 
 
 @api_view(['POST'])
@@ -54,7 +54,7 @@ def check_health(request):
         )
         return err.to_response()
     # Send empty success response
-    return Response(status=204)
+    return Response(status=200)
 
 
 @api_view(['POST'])

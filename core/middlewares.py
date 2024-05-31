@@ -116,3 +116,39 @@ class HeaderRequestedByMiddleware:
 
 def is_web(request):
     return request.requested_by == 'web'
+
+
+class FormulateResponseMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+
+        response = self.get_response(request)
+        # Code to be executed for each request/response after
+        # the view is called.
+
+        if request.path.startswith('/api'):
+            # If 'X-Requested-By' header is present and not set to 'web'
+            # then token based authentication is used. In such case,
+            # provide 'Authorization' header with token.
+            response_format = dict(
+                success=None,
+                data=None,
+                errors=None,
+                status=response.status_code
+            )
+            if response.status_code > 399 and response.status_code < 500:
+                response_format['success'] = False
+                response_format['errors'] = json.loads(
+                    response.content.decode('utf8'))
+            elif response.status_code < 300:
+                response_format['success'] = True
+                if response.status_code != 204 and response.content:
+                    response_format['data'] = json.loads(
+                        response.content.decode('utf8'))
+                    response.status_code = 200
+            response.content = json.dumps(response_format)
+        return response

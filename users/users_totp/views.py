@@ -89,7 +89,7 @@ def totp_enable(request):
                 totp.save()
                 MFAJoinToken.objects.consume_token(
                     request.data['mfa_join_token'])
-            return Response(status=204)
+            return Response(status=200)
         return ErrorMessage(
             title='Invalid TOTP Token',
             detail='The provided TOTP token is invalid. Please try again.',
@@ -123,7 +123,7 @@ def totp_disable(request):
         totp.status = 'disabled'
         totp.updated_at = now()
         totp.save()
-        return Response(status=204)
+        return Response(status=200)
     return ErrorMessage(
         title='Invalid TOTP Token',
         detail='The provided TOTP token or backup code is invalid. Please try again.',

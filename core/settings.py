@@ -59,6 +59,7 @@ MIDDLEWARE = [
     "core.middlewares.RequestOriginMiddleware",
     "users.users_sessions.middlewares.SessionMiddleware",
     "logs.middlewares.APILogMiddleware",
+    "core.middlewares.FormulateResponseMiddleware",
 ]
 
 ROOT_URLCONF = 'core.urls'

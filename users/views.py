@@ -28,7 +28,7 @@ def login(request):
         totp_row = has_totp(user)
         if totp_row is not None:
             # If token is not provided
-            if 'token' not in request.data:
+            if 'token' not in request.data or ('token' in request.data and (request.data['token'] == None or request.data['token'] == '')):
                 return ErrorMessage(
                     detail="TOTP token is required.",
                     status=401,
@@ -116,7 +116,7 @@ def logout(request):
     if is_web(request):
         delete_session(get_active_session(request).user,
                        get_active_session(request).id)
-        response = Response(status=204)
+        response = Response(status=200)
         response.delete_cookie(
             key=config('AUTH_COOKIE_NAME', default='auth'),
             domain=config('AUTH_COOKIE_DOMAIN', default='localhost')
@@ -126,7 +126,7 @@ def logout(request):
         delete_app_token(get_active_token(request).user,
                          get_active_token(request).id)
     # Return response
-    return Response(status=204)
+    return Response(status=200)
 
 
 @api_view(['GET'])

@@ -44,7 +44,6 @@ class ErrorMessage():
         response = JsonResponse({
             'title': self.title,
             'detail': self.detail,
-            'status': self.status,
             'instance': self.instance,
             'code': self.code
         }, status=self.status)
@@ -56,7 +55,6 @@ class ErrorMessage():
         return {
             'title': self.title,
             'detail': self.detail,
-            'status': self.status,
             'instance': self.instance,
             'code': self.code
         }
