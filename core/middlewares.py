@@ -129,11 +129,7 @@ class FormulateResponseMiddleware:
         response = self.get_response(request)
         # Code to be executed for each request/response after
         # the view is called.
-
-        if request.path.startswith('/api'):
-            # If 'X-Requested-By' header is present and not set to 'web'
-            # then token based authentication is used. In such case,
-            # provide 'Authorization' header with token.
+        if request.path.startswith('/api') and "Content-Type" in response.headers and response.headers["Content-Type"] in ['application/json', 'application/problem+json']:
             response_format = dict(
                 success=None,
                 data=None,
@@ -149,6 +145,17 @@ class FormulateResponseMiddleware:
                 if response.status_code != 204 and response.content:
                     response_format['data'] = json.loads(
                         response.content.decode('utf8'))
+                if response.status_code == 204:
                     response.status_code = 200
+                    response_format['status'] = 200
             response.content = json.dumps(response_format)
+        elif request.path.startswith('/api') and "Content-Type" not in response.headers:
+            response_format = dict(
+                success=response.status_code < 300,
+                data=None,
+                errors=None,
+                status=200
+            )
+            response.content = json.dumps(response_format)
+            response.status_code = 200
         return response

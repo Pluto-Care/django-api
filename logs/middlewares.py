@@ -48,11 +48,12 @@ class APILogMiddleware:
         # check if response has key 'instance', 'status' and 'code'
         # to see if it is an error response. If it is, then set 'code'
         # as log_id
-        try:
-            r = json.loads(response.content.decode('utf8'))
-            r['id'] = str(log_obj.id)
-            response.content = json.dumps(r)
-        except json.JSONDecodeError as e:
-            pass
+        if "Content-Type" in response.headers and response.headers["Content-Type"] in ['application/json', 'application/problem+json']:
+            try:
+                r = json.loads(response.content.decode('utf8'))
+                r['id'] = str(log_obj.id)
+                response.content = json.dumps(r)
+            except json.JSONDecodeError as e:
+                pass
         # Return response
         return response
