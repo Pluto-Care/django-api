@@ -15,5 +15,8 @@ class HasMFAJoinToken(permissions.BasePermission):
             mfa_join_token = MFAJoinToken.objects.verify_token(
                 request.data['mfa_join_token'], request)
             if mfa_join_token:
+                print("mfa_join_token", True)
                 return True
+        print(request.data)
+        print("mfa_join_token", False)
         return False

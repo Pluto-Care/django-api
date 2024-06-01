@@ -176,6 +176,10 @@ class MFAJoinTokenManager(models.Manager):
                 return None
             return mfa_token
         except Exception as e:
+            print(e)
+            print(hash_this(token))
+            print(getClientIP(request))
+            print(getUserAgent(request))
             return None
 
     def consume_token(self, token):
