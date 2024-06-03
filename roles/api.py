@@ -14,6 +14,8 @@ def assign_role_to_user(user, role_id):
 
 
 def assign_permission_to_user(user, permission_id):
+    if isinstance(permission_id, dict):
+        permission_id = permission_id['id']
     if user is None:
         raise ValueError('User is required')
     if permission_id is None:
@@ -35,7 +37,7 @@ def check_user_for_permission(user, permission_id):
     # Check for role permission
     try:
         user_role = UserRole.objects.select_related(
-            'role', 'role__permissions').get(user=user)
+            'role').get(user=user)
         if user_role:
             # Check if user has full access
             if user_role.role.permissions.filter(id=base_permission['FULL_ACCESS']).exists():

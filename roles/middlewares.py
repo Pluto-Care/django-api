@@ -23,7 +23,7 @@ class AttachPermissionsMiddleware:
         if user:
             user_permissions = UserPermission.objects.filter(user=user)
             user_role = UserRole.objects.select_related(
-                'role', 'role__permissions').filter(user=user).first()
+                'role').filter(user=user).first()
             if user_role:
                 user_permissions = user_permissions.union(
                     user_role.role.permissions.all())
