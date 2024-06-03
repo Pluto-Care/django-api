@@ -1,9 +1,10 @@
 from rest_framework import permissions
 from .models import MFAJoinToken
+from rest_framework.permissions import exceptions
 
 
 class HasMFAJoinToken(permissions.BasePermission):
-    message = 'Unauthorized!'
+    message = 'Unauthorized! MFA Join Token is required.'
     """
     Permission to check if user session is present
     """
@@ -19,4 +20,4 @@ class HasMFAJoinToken(permissions.BasePermission):
                 return True
         print(request.data)
         print("mfa_join_token", False)
-        return False
+        raise exceptions.ParseError(self.message)

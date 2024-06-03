@@ -1,7 +1,7 @@
 from .models import Organization, OrgUser
 from users.api import add_user
 from roles.api import assign_permission_to_user
-from roles.base import base_permission
+from roles.base_permissions import base_permission
 
 
 def new_organization(user_email, user_password, user_first_name, user_last_name):

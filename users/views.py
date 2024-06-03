@@ -15,9 +15,6 @@ from .users_totp.api import has_totp, authenticate_totp, create_mfa_join_token
 # User Imports
 from .serializers import UserSerializer, LoginSerializer
 from .permissions import HasSessionOrTokenActive
-# Roles
-from roles.permissions import HasPermission
-from roles.base import base_permission
 
 
 @api_view(['POST'])
@@ -133,7 +130,7 @@ def logout(request):
 
 
 @api_view(['GET'])
-@permission_classes([HasSessionOrTokenActive, HasPermission(base_permission['READ_USER'])])
+@permission_classes([HasSessionOrTokenActive])
 def me(request):
     if is_web(request):
         # Check if session is active

@@ -26,5 +26,8 @@ class AttachPermissionsMiddleware:
                 'role').filter(user=user).first()
             if user_role:
                 user_permissions = user_permissions.union(
-                    user_role.role.permissions.all())
-            request.active_permissions = user_permissions
+                    user_role.role.permissions.all()).values_list('id', flat=True)
+            else:
+                user_permissions = user_permissions.values_list(
+                    'permission__id', flat=True)
+            request.active_permissions = list(user_permissions)

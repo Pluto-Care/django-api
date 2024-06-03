@@ -1,5 +1,6 @@
+from django.db.models import Q
 from .models import Role, Permission, UserRole, UserPermission
-from .base import base_permission
+from .base_permissions import base_permission
 
 
 def assign_role_to_user(user, role_id):
@@ -31,18 +32,18 @@ def check_user_for_permission(user, permission_id):
         raise ValueError('User is required')
     if permission_id is None:
         raise ValueError('Permission ID is required')
-    # Check for explicit permission
-    if UserPermission.objects.filter(user=user, permission_id=permission_id).exists():
+    if isinstance(permission_id, dict):
+        permission_id = permission_id['id']
+    # Check if user has full access or has explicit permission
+    if UserPermission.objects.filter(Q(user=user), Q(permission_id=base_permission['FULL_ACCESS']['id']) | Q(permission_id=permission_id)).exists():
         return True
     # Check for role permission
     try:
         user_role = UserRole.objects.select_related(
             'role').get(user=user)
         if user_role:
-            # Check if user has full access
-            if user_role.role.permissions.filter(id=base_permission['FULL_ACCESS']).exists():
-                return True
-            if user_role.role.permissions.filter(id=permission_id).exists():
+            # Check if role has full access or has explicit permission
+            if user_role.role.permissions.filter(Q(id=base_permission['FULL_ACCESS']['id']) | Q(id=permission_id)).exists():
                 return True
     except UserRole.DoesNotExist:
         pass

@@ -62,3 +62,109 @@ def add_user(email, password, first_name, last_name, serilized=False):
             return account
     except Exception as e:
         raise Exception(e)
+
+
+def change_password(user, new_password):
+    """
+    Change user password
+
+    Args:
+        user (User): User object
+        new_password (str): New password
+
+    Returns: User or None
+    """
+    try:
+        user.set_password(new_password)
+        user.save()
+        return user
+    except Exception as e:
+        raise Exception(e)
+
+
+def change_email(user, new_email):
+    """
+    Change user email
+
+    Args:
+        user (User): User object
+        new_email (str): New email
+
+    Returns: User or None
+    """
+    try:
+        user.email = new_email
+        user.save()
+        return user
+    except Exception as e:
+        raise Exception(e)
+
+
+def change_name(user, new_first_name, new_last_name):
+    """
+    Change user name
+
+    Args:
+        user (User): User object
+        new_first_name (str): New first name
+        new_last_name (str): New last name
+
+    Returns: User or None
+    """
+    try:
+        user.first_name = new_first_name
+        user.last_name = new_last_name
+        user.save()
+        return user
+    except Exception as e:
+        raise Exception(e)
+
+
+def disable_user(user):
+    """
+    Disable user
+
+    Args:
+        user (User): User object
+
+    Returns: User or None
+    """
+    try:
+        user.is_active = False
+        user.save()
+        return user
+    except Exception as e:
+        raise Exception(e)
+
+
+def enable_user(user):
+    """
+    Enable user
+
+    Args:
+        user (User): User object
+
+    Returns: User or None
+    """
+    try:
+        user.is_active = True
+        user.save()
+        return user
+    except Exception as e:
+        raise Exception(e)
+
+
+def delete_user(user):
+    """
+    Delete user
+
+    Args:
+        user (User): User object
+
+    Returns: User or None
+    """
+    try:
+        user.delete()
+        return user
+    except Exception as e:
+        raise Exception(e)
