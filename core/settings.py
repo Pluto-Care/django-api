@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'users.users_app_tokens',
 
     'organizations',
+
+    'roles',
 ]
 
 MIDDLEWARE = [
@@ -53,11 +55,15 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
+    # Apply on request
     "core.middlewares.APIRequestFormatMiddleware",
     "core.middlewares.HeaderRequestedByMiddleware",
     "users.users_app_tokens.middlewares.AppTokenMiddleware",
     "core.middlewares.RequestOriginMiddleware",
     "users.users_sessions.middlewares.SessionMiddleware",
+    "roles.middlewares.AttachPermissionsMiddleware",
+
+    # Apply on response
     "logs.middlewares.APILogMiddleware",
     "core.middlewares.FormulateResponseMiddleware",
 ]

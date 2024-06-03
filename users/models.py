@@ -12,7 +12,6 @@ class User(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=now)
     created_by = models.ForeignKey(
         'self', on_delete=models.SET_NULL, related_name='user_created_by', null=True, blank=True)

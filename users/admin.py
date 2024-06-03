@@ -5,8 +5,7 @@ from .models import User
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'first_name', 'last_name',
-                    'is_admin', 'is_active')
+    list_display = ('email', 'first_name', 'last_name', 'is_active')
     search_fields = ['first_name', 'last_name',
                      'email']
     search_help_text = 'Search with first name, last name, or email address.'

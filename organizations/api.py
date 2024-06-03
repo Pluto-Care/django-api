@@ -1,5 +1,7 @@
 from .models import Organization, OrgUser
 from users.api import add_user
+from roles.api import assign_permission_to_user
+from roles.base import base_permission
 
 
 def new_organization(user_email, user_password, user_first_name, user_last_name):
@@ -21,6 +23,8 @@ def new_organization(user_email, user_password, user_first_name, user_last_name)
         organization = Organization.objects.create_org()
         # Create org user
         OrgUser.objects.create_org_user(organization=organization, user=user)
+        # Assign permission to user
+        assign_permission_to_user(user, base_permission['FULL_ACCESS'])
         return organization
     else:
         return None

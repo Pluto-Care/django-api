@@ -1,6 +1,6 @@
 # Only to be used in development environment
 
-apps := users users_sessions users_totp logs users_forgot_password users_app_tokens organizations
+apps := users users_sessions users_totp logs users_forgot_password users_app_tokens organizations roles
 
 .PHONY: all
 
@@ -15,7 +15,8 @@ resetdb:
 	find . -type d -name migrations -prune -not -path "./.venv/*" -exec rm -rf {} \;
 	.venv/bin/python manage.py makemigrations $(apps)
 	.venv/bin/python manage.py migrate
-	.venv/bin/python manage.py migrate --database=logs_db
+	.venv/bin/python manage.py migrate logs --database=logs_db
+	.venv/bin/python manage.py setup_base_roles
 
 resetkeys:
 	tar -czf ./keys/backup_$(shell date +%Y%m%d-%H%M.%S).tar.gz ./keys/*
