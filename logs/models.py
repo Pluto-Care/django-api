@@ -1,6 +1,9 @@
+import json
 from django.db import models
 from django.utils.timezone import now
 from .managers import LogManager
+from users.users_app_tokens.api import get_user as get_user_from_app_token
+from users.users_sessions.api import get_user as get_user_from_session
 
 
 class ApiCallLog(models.Model):
@@ -23,5 +26,28 @@ class ApiCallLog(models.Model):
 
     objects = LogManager()
 
+    class Meta:
+        verbose_name = 'API Call Log'
+        verbose_name_plural = 'API Call Logs'
+        ordering = ('-created_at',)
+
+    @property
+    def user_email(self):
+        if self.app_token:
+            user = get_user_from_app_token(self.app_token)
+            if user:
+                return user.email
+        elif self.session:
+            user = get_user_from_session(self.session)
+            if user:
+                return user.email
+        else:
+            context = json.loads(self.context)
+            if 'm' in context and 'user' in context['m']:
+                """This only works for login and sign up requests as the APILogMiddleware
+                the user object and store it in log context"""
+                return context['m']['user']
+        return None
+
     def __str__(self):
-        return 'ID ' + str(self.pk)
+        return 'ID: ' + str(self.pk)
