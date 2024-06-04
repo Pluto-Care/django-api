@@ -20,4 +20,4 @@ These are base functions and do not check if the user accessing the function has
 ## DRF Permissions
 
 -   `HasFullAccess`
--   `HasPermission(base_permission['READ_USER'])`
+-   `HasPermission(READ_USER)`

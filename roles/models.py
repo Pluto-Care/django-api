@@ -8,10 +8,16 @@ class Permission(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=255)
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class Role(models.Model):
     name = models.CharField(max_length=255)
     permissions = models.ManyToManyField(Permission, default=None)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class UserRole(models.Model):

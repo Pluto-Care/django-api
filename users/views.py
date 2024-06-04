@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from utils.error_handling.error_message import ErrorMessage
 from decouple import config
 from core.middlewares import is_web
+from core.settings import SECRET_KEY
+# JWT
+import jwt
 # Session Imports
 from .users_sessions.api import create_session, delete_session, get_last_session_details
 from .users_sessions.utils import get_active_session
@@ -15,6 +18,8 @@ from .users_totp.api import has_totp, authenticate_totp, create_mfa_join_token
 # User Imports
 from .serializers import UserSerializer, LoginSerializer
 from .permissions import HasSessionOrTokenActive
+# Roles Imports
+from roles.api import get_user_permissions, get_user_role
 
 
 @api_view(['POST'])
@@ -61,6 +66,9 @@ def login(request):
         last_session = get_last_session_details(user)  # already serialized
         last_token_session = get_last_token_session_details(
             user)  # already serialized
+        # Get roles and permissions
+        role = get_user_role(user)
+        permissions = get_user_permissions(user)
         # Respond depending on the client
         if is_web(request):
             # Session based authentication
@@ -69,13 +77,23 @@ def login(request):
             response = Response(data={
                 "last_session": last_session,
                 "last_token_session": last_token_session,
+                "permissions": permissions,
+                "role": role,
                 "user": UserSerializer(user).data
             },
                 status=200
             )
             response.set_cookie(
                 key=config('AUTH_COOKIE_NAME', default='auth'),
-                value=key,
+                value=jwt.encode(
+                    {
+                        "permissions": permissions,
+                        "role": role,
+                        "session_key": key
+                    },
+                    SECRET_KEY,
+                    algorithm='HS256'
+                ),
                 expires=session.expire_at,
                 httponly=True,
                 secure=config('AUTH_COOKIE_SECURE', default=True, cast=bool),
@@ -85,15 +103,25 @@ def login(request):
             return response
         else:
             # Token based authentication
-            key, session = create_app_token(user, request)
+            token, app_token = create_app_token(user, request)
             # Respond with token and user data
             return Response(data={
                 "last_session": last_session,
                 "last_token_session": last_token_session,
+                "permissions": permissions,
+                "role": role,
                 "user": UserSerializer(user).data,
                 "session": dict(
-                    id=session.id,
-                    key=key,
+                    id=app_token.id,
+                    key=jwt.encode(
+                        {
+                            "permissions": permissions,
+                            "role": role,
+                            "app_token": token
+                        },
+                        SECRET_KEY,
+                        algorithm='HS256'
+                    ),
                 )
             },
                 status=200

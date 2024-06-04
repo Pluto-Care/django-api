@@ -61,7 +61,6 @@ MIDDLEWARE = [
     "users.users_app_tokens.middlewares.AppTokenMiddleware",
     "core.middlewares.RequestOriginMiddleware",
     "users.users_sessions.middlewares.SessionMiddleware",
-    "roles.middlewares.AttachPermissionsMiddleware",
 
     # Apply on response
     "logs.middlewares.APILogMiddleware",

@@ -1,6 +1,7 @@
 from django.db.models import Q
 from .models import Role, Permission, UserRole, UserPermission
 from .base_permissions import base_permission
+from .serializers import RoleSerializer, PermissionSerializer
 
 
 def assign_role_to_user(user, role_id):
@@ -25,6 +26,31 @@ def assign_permission_to_user(user, permission_id):
     user_permission = UserPermission(user=user, permission=permission)
     user_permission.save()
     return user_permission
+
+
+def get_user_role(user):
+    if user is None:
+        raise ValueError('User is required')
+    try:
+        user_role = UserRole.objects.select_related(
+            'role').get(user=user)
+        role_serializer = RoleSerializer(user_role.role)
+        return role_serializer.data
+    except UserRole.DoesNotExist:
+        return None
+
+
+def get_user_permissions(user):
+    if user is None:
+        raise ValueError('User is required')
+    permissions = []
+    # Check for explicit permissions
+    user_permissions = UserPermission.objects.select_related('permission').filter(
+        user=user)
+    for user_permission in user_permissions:
+        permissions.append(PermissionSerializer(
+            user_permission.permission).data)
+    return permissions
 
 
 def check_user_for_permission(user, permission_id):
@@ -58,4 +84,8 @@ def has_full_access(user):
 
 
 def get_active_user_permissions(request):
-    return getattr(request, 'active_permissions', [])
+    return getattr(request, 'active_user_permissions', None)
+
+
+def get_active_user_role(request):
+    return getattr(request, 'active_user_role', None)

@@ -24,21 +24,25 @@ class APILogMiddleware:
             # If response is not JSON or empty
             content = dict()
         if response.status_code > 399:
-            if 'instance' in content:
-                # Omit instance as it is from ErrorMessage class
-                # instance also carries the URL that caused the error
-                # but this information is already in model's URL column
-                content.pop('instance')
-            if 'status' in content:
-                # Omit status as it is already in model's status column
-                content.pop('status')
-            log = LogResponse(status=response.status_code, message=content)
+            if 'errors' in content:
+                if 'instance' in content['errors']:
+                    # Omit instance as it is from ErrorMessage class
+                    # instance also carries the URL that caused the error
+                    # but this information is already in model's URL column
+                    content['errors'].pop('instance')
+                if 'status' in content['errors']:
+                    # Omit status as it is already in model's status column
+                    content['errors'].pop('status')
+                log = LogResponse(status=response.status_code,
+                                  message=content['errors'])
+            else:
+                log = LogResponse(status=response.status_code)
         else:
             # check if content has key 'session_id', that means this
             # response is from login or signup API
-            if 'user' in content:
+            if 'user' in content['data']:
                 log = LogResponse(status=response.status_code, message=dict(
-                    user=content['user']['email']))
+                    user=content['data']['user']['email']))
             else:
                 log = LogResponse(status=response.status_code)
         log_obj = ApiCallLog.objects.create_log(

@@ -12,13 +12,6 @@ class APIRequestFormatMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        response = self.get_response(request)
-        # Code to be executed for each request/response after
-        # the view is called.
-        return response
-
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        # This gets executed before the view.
         # Run on API requests only
         if request.path.startswith('/api') and request.content_type == 'application/json':
             if not self.validate_json_payload(request):
@@ -31,6 +24,11 @@ class APIRequestFormatMiddleware:
                 return JsonResponse(
                     error.serialize(),
                     status=400)
+
+        response = self.get_response(request)
+        # Code to be executed for each request/response after
+        # the view is called.
+        return response
 
     def validate_json_payload(self, request):
         if request.method in ['POST', 'PUT', 'PATCH']:
@@ -50,13 +48,6 @@ class RequestOriginMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        response = self.get_response(request)
-        # Code to be executed for each request/response after
-        # the view is called.
-        return response
-
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        # This gets executed before the view.
         # Run on API requests only
         if request.path.startswith('/api'):
             # If Token authentication is used that means
@@ -74,6 +65,11 @@ class RequestOriginMiddleware:
                     return JsonResponse(
                         error.serialize(),
                         status=400)
+
+        response = self.get_response(request)
+        # Code to be executed for each request/response after
+        # the view is called.
+        return response
 
     def validate_origin_header(self, request):
         # If DEBUG is True, allow all origins
@@ -96,13 +92,6 @@ class HeaderRequestedByMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        response = self.get_response(request)
-        # Code to be executed for each request/response after
-        # the view is called.
-        return response
-
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        # This gets executed before the view.
         # Run on API requests only
         if request.path.startswith('/api'):
             # If 'X-Requested-By' header is present and not set to 'web'
@@ -112,6 +101,11 @@ class HeaderRequestedByMiddleware:
                 request.requested_by = request.META['HTTP_X_REQUESTED_BY']
             else:
                 request.requested_by = 'web'
+
+        response = self.get_response(request)
+        # Code to be executed for each request/response after
+        # the view is called.
+        return response
 
 
 def is_web(request):
