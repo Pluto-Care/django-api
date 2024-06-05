@@ -50,18 +50,19 @@ def login(request):
                     title='2FA code is incorrect',
                     code='TOTPIncorrect'
                 ).to_response()
-        else:
-            # Create a MFA Join Token
-            mfa_join_token, _ = create_mfa_join_token(user, request)
-            response = Response(
-                data={
-                    "mfa_join_token": mfa_join_token,
-                    "detail": "MFA is required.",
-                    "reason": "MFA_REQUIRED"
-                },
-                status=202
-            )
-            return response
+        # else:
+        #     # TODO: commented out for development purposes
+        #     # Create a MFA Join Token
+        #     mfa_join_token, _ = create_mfa_join_token(user, request)
+        #     response = Response(
+        #         data={
+        #             "mfa_join_token": mfa_join_token,
+        #             "detail": "MFA is required.",
+        #             "reason": "MFA_REQUIRED"
+        #         },
+        #         status=202
+        #     )
+        #     return response
         # Get last session details
         last_session = get_last_session_details(user)  # already serialized
         last_token_session = get_last_token_session_details(
@@ -87,8 +88,6 @@ def login(request):
                 key=config('AUTH_COOKIE_NAME', default='auth'),
                 value=jwt.encode(
                     {
-                        "permissions": permissions,
-                        "role": role,
                         "session_key": key
                     },
                     SECRET_KEY,
@@ -115,8 +114,6 @@ def login(request):
                     id=app_token.id,
                     key=jwt.encode(
                         {
-                            "permissions": permissions,
-                            "role": role,
                             "app_token": token
                         },
                         SECRET_KEY,
@@ -160,15 +157,28 @@ def logout(request):
 @api_view(['GET'])
 @permission_classes([HasSessionOrTokenActive])
 def me(request):
+
+    # Session-based authentication
     if is_web(request):
-        # Check if session is active
         session = get_active_session(request)
+        role = get_user_role(session.user)
+        permissions = get_user_permissions(session.user)
         if session is not None:
-            return Response(data=UserSerializer(session.user).data, status=200)
-    # Check if token is active
+            return Response(data=dict(
+                user=UserSerializer(session.user).data,
+                role=role,
+                permissions=permissions
+            ), status=200)
+    # Token-based authentication
     app_token = get_active_token(request)
+    role = get_user_role(app_token.user)
+    permissions = get_user_permissions(app_token.user)
     if app_token is not None:
-        return Response(data=UserSerializer(app_token.user).data, status=200)
+        return Response(data=dict(
+            user=UserSerializer(app_token.user).data,
+            role=role,
+            permissions=permissions
+        ), status=200)
     # No valid active session or token found
     return ErrorMessage(
         detail='No active session or token found.',

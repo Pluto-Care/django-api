@@ -3,6 +3,8 @@ from core.settings import SECRET_KEY
 from decouple import config
 from .models import Session
 from .utils import getClientIP, getUserAgent
+# Roles Imports
+from roles.api import get_user_permissions, get_user_role
 
 
 class SessionMiddleware:
@@ -14,12 +16,13 @@ class SessionMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        session, role, permissions = self.get_active_session(request)
+        session = self.get_active_session(request)
         # Attach the session to the request
         request.active_session = session
         if session:
-            request.active_user_role = role
-            request.active_user_permissions = permissions
+            request.active_user_role = get_user_role(session.user)
+            request.active_user_permissions = get_user_permissions(
+                session.user)
 
         response = self.get_response(request)
 
@@ -41,7 +44,7 @@ class SessionMiddleware:
             key = decoded_jwt_key.get('session_key')
             session = Session.objects.authenticate_session(
                 key, getClientIP(request), getUserAgent(request))
-            return session, decoded_jwt_key.get('role'), decoded_jwt_key.get('permissions')
+            return session
         except (KeyError, Exception) as e:
             session = None
-        return session, None, None
+        return session

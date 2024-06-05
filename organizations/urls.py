@@ -5,5 +5,6 @@ from . import views
 api/organization/
 """
 urlpatterns = [
-    # path('make/', views.make_call),
+    path('me/', views.me),
+    path('update/', views.createOrUpdateOrgProfile)
 ]

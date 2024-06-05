@@ -24,3 +24,8 @@ class OrgUserManager(models.Manager):
             user=user
         )
         return row
+
+
+class OrgProfileManager(models.Manager):
+    def __init__(self):
+        super().__init__()
