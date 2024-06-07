@@ -1,7 +1,9 @@
 asgiref==3.8.1
 bcrypt==4.1.2
+cryptography==42.0.8
 Django==5.0.6
 django-cors-headers==4.3.1
+django-cryptography-django5==2.2
 djangorestframework==3.15.1
 pillow==10.2.0
 psycopg2-binary==2.9.9

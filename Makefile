@@ -1,6 +1,7 @@
 # Only to be used in development environment
 
-apps := users users_sessions users_totp logs users_forgot_password users_app_tokens organizations roles
+apps := users users_sessions users_totp logs users_forgot_password users_app_tokens organizations roles \
+patients
 
 .PHONY: all
 
