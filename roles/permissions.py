@@ -41,7 +41,6 @@ class HasPermission(permissions.BasePermission):
         if user_permissions:
             ids = [p.get('id') for p in user_permissions]
             full_permissions.extend(ids)
-        print(full_permissions)
         # Check if user has full access
         if FULL_ACCESS['id'] in full_permissions:
             return True
