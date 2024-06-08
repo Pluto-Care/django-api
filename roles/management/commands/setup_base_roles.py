@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from roles.models import Permission, Role
 from roles.base_permissions import base_permission, base_roles
+from patients.base_permissions import base_permission as patients_base_permission
 
 
 class Command(BaseCommand):
@@ -8,11 +9,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         permissions = dict()
+        # --------------------------------------#
         # Create permissions
+        # Roles App
         for key, value in base_permission.items():
             permission = Permission(id=value['id'], name=value['name'])
             permission.save()
             permissions[value['id']] = permission
+        # Patients App
+        for key, value in patients_base_permission.items():
+            permission = Permission(id=value['id'], name=value['name'])
+            permission.save()
+            permissions[value['id']] = permission
+        # --------------------------------------#
         # Create roles
         for role in base_roles:
             role_name = role['name']
