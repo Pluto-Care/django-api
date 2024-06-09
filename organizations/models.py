@@ -12,15 +12,11 @@ class Organization(models.Model):
     objects = OrganizationManager()
 
 
-class OrgUser(models.Model):
-    id = models.UUIDField(unique=True, primary_key=True)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    objects = OrgUserManager()
-
-
 class OrgProfile(models.Model):
+    """
+    This is profile of the entire organization. It contains the
+    organization's name, email, phone, address etc.
+    """
     organization = models.OneToOneField(Organization, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -35,3 +31,14 @@ class OrgProfile(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     objects = OrgProfileManager()
+
+
+class OrgUser(models.Model):
+    """
+    This model contains the mapping of users to organizations.
+    """
+    id = models.UUIDField(unique=True, primary_key=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    objects = OrgUserManager()

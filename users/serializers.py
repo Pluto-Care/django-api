@@ -75,3 +75,17 @@ class PasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('Password is required.')
         # validate password
         return validate_password(force_str(data['password']))
+
+
+class AddUserSerializer(serializers.Serializer):
+    email = serializers.EmailField(validators=[validate_email])
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    password = serializers.CharField(validators=[validate_password])
+
+    def validate(self, data):
+        # Check if email, first name, last name, and password are provided
+        if 'email' not in data or 'first_name' not in data or 'last_name' not in data or 'password' not in data:
+            raise serializers.ValidationError(
+                'All fields are required.')
+        return data
