@@ -41,6 +41,16 @@ def get_user_role(user):
 
 
 def get_user_permissions(user):
+    """Returns a list of permissions for a user as Python object
+
+    Args:
+        user (_type_): _description_
+
+    Raises:
+        ValueError: _description_
+
+    Return Example: `[{id: 1, name: 'permission1'}, {id: 2, name: 'permission2'}]`
+    """
     if user is None:
         raise ValueError('User is required')
     permissions = []
