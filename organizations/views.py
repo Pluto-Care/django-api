@@ -7,6 +7,7 @@ from users.serializers import UserSerializer, AddUserSerializer
 from utils.error_handling.error_message import ErrorMessage
 from roles.permissions import HasPermission
 from roles.base_permissions import UPDATE_ORGANIZATION, READ_ALL_USERS, CREATE_NEW_USER
+from roles.api import get_user_role, get_user_permissions
 from .api import get_user_org, get_org_user
 from .models import OrgUser, OrgProfile
 from .serializers import OrgProfileSerializer
@@ -196,12 +197,12 @@ def create_org_user(request):
 
 class OrgUserView(APIView):
     """
-    Get user details
+    Get user details for admin users
     """
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [HasSessionOrTokenActive()]
+            return [HasSessionOrTokenActive(), HasPermission(READ_ALL_USERS)]
         return [False]
 
     def get(self, request, *args, **kwargs):
@@ -220,7 +221,13 @@ class OrgUserView(APIView):
         organization = get_user_org(get_request_user(request))
         user = get_org_user(user_id, organization)
         if user:
-            return Response(UserSerializer(user).data, status=200)
+            return Response(
+                dict(
+                    user=UserSerializer(user).data,
+                    role=get_user_role(user),
+                    permissions=get_user_permissions(user)
+                ),
+                status=200)
         return ErrorMessage(
             title='User Not Found',
             detail='User not found.',
