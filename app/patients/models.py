@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.utils.timezone import now
 from users.models import User
@@ -7,7 +8,7 @@ from .managers import PatientManager
 
 
 class Patient(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False)
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     dob = encrypt(models.DateField(blank=True, null=True))

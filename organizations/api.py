@@ -47,12 +47,30 @@ def get_user_org(user):
         return None
 
 
-def get_org_user(user_id, organization):
+def get_org_user(user, organization):
     """
     Get organization user
 
     Args:
-        user_id (str): User ID
+        user (User): User
+        organization (Organization): Organization object
+
+    Returns: User or None
+    """
+    try:
+        org_user = OrgUser.objects.select_related(
+            'user').get(user=user, organization=organization)
+        return org_user.user
+    except OrgUser.DoesNotExist:
+        return None
+
+
+def get_org_user_from_id(user_id, organization):
+    """
+    Get organization user
+
+    Args:
+        user_id (string): User ID
         organization (Organization): Organization object
 
     Returns: User or None

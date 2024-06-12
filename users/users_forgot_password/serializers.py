@@ -14,7 +14,7 @@ class HealthyForgotPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'Key/token is not present.')
         try:
-            fp = ForgotPassword.objects.get(
+            fp = ForgotPassword.objects.select_related('user').get(
                 key=hash_this(force_str(data['key'])))
             # Check if key is correct
             if not fp.check_key(force_str(data['key'])):

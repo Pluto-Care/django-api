@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.utils.timezone import now
 from .managers import UserManager
@@ -5,7 +6,7 @@ import bcrypt
 
 
 class User(models.Model):
-    id = models.UUIDField(unique=True, primary_key=True)
+    id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4)
     password = models.CharField(max_length=150)
     email = models.CharField(
         max_length=150, unique=True, null=True, blank=True)
@@ -28,12 +29,9 @@ class User(models.Model):
         return self.first_name + ' ' + self.last_name + ' - ' + self.email
 
     def set_password(self, password):
-        self.password = hash_password(password)
+        self.password = bcrypt.hashpw(password.encode(
+            'utf-8'), bcrypt.gensalt()).decode('utf-8')
         self.save()
 
     def check_password(self, password):
         return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
-
-
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')

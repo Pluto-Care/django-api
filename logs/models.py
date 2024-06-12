@@ -1,3 +1,4 @@
+import uuid
 import json
 from django.db import models
 from django.utils.timezone import now
@@ -7,7 +8,7 @@ from users.users_sessions.api import get_user as get_user_from_session
 
 
 class ApiCallLog(models.Model):
-    id = models.UUIDField(unique=True, primary_key=True)
+    id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4)
     # API URL that the user is trying to access
     url = models.CharField(max_length=255)
     # Response brief for success or error

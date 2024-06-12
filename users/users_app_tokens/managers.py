@@ -1,4 +1,3 @@
-import uuid
 from django.db import models
 from django.utils.timezone import now
 from .utils import generate_token, hash_this, getClientIP, getUserAgent
@@ -25,7 +24,6 @@ class AppTokenManager(models.Manager):
                     ua=getUserAgent(request), is_valid=True).update(is_valid=False)
         key = generate_token()
         token = self.create(
-            id=uuid.uuid4(),
             user=user,
             token=hash_this(key),
             ip=getClientIP(request),

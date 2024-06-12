@@ -1,4 +1,3 @@
-import uuid
 from django.db import models
 from organizations.api import get_user_org
 from users.api import get_request_user
@@ -10,7 +9,6 @@ class PatientManager(models.Manager):
 
     def create_patient(self, request, **extra_fields):
         patient = self.model(**extra_fields)
-        patient.id = uuid.uuid4()
         patient.organization = get_user_org(get_request_user(request))
         patient.created_by = get_request_user(request)
         patient.save()

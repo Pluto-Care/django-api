@@ -1,4 +1,3 @@
-import uuid
 from django.db import models
 from django.utils.timezone import now
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -36,7 +35,6 @@ class SessionManager(models.Manager):
         # Create a new session
         key = generate_session_key()
         session = self.create(
-            id=uuid.uuid4(),
             user=user,
             key=hash_this(key),
             ip=getClientIP(request),

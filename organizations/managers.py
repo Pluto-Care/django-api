@@ -1,4 +1,3 @@
-import uuid
 from django.db import models
 
 
@@ -7,9 +6,7 @@ class OrganizationManager(models.Manager):
         super().__init__()
 
     def create_org(self):
-        row = self.create(
-            id=uuid.uuid4()
-        )
+        row = self.create()
         return row
 
 
@@ -19,7 +16,6 @@ class OrgUserManager(models.Manager):
 
     def create_org_user(self, organization, user):
         row = self.create(
-            id=uuid.uuid4(),
             organization=organization,
             user=user
         )

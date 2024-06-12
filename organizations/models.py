@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.utils.timezone import now
 from users.models import User
@@ -5,7 +6,7 @@ from .managers import OrganizationManager, OrgUserManager, OrgProfileManager
 
 
 class Organization(models.Model):
-    id = models.UUIDField(unique=True, primary_key=True)
+    id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4)
     created_at = models.DateTimeField(default=now)
     is_active = models.BooleanField(default=True)
 
@@ -37,7 +38,7 @@ class OrgUser(models.Model):
     """
     This model contains the mapping of users to organizations.
     """
-    id = models.UUIDField(unique=True, primary_key=True)
+    id = models.UUIDField(unique=True, primary_key=True, default=uuid.uuid4)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 

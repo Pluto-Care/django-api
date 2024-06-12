@@ -8,7 +8,7 @@ from utils.error_handling.error_message import ErrorMessage
 from roles.permissions import HasPermission
 from roles.base_permissions import UPDATE_ORGANIZATION, READ_ALL_USERS, CREATE_NEW_USER
 from roles.api import get_user_role, get_user_permissions
-from .api import get_user_org, get_org_user
+from .api import get_user_org
 from .models import OrgUser, OrgProfile
 from .serializers import OrgProfileSerializer
 
@@ -219,19 +219,21 @@ class OrgUserView(APIView):
                 code='UserIDRequired',
             ).to_response()
         organization = get_user_org(get_request_user(request))
-        user = get_org_user(user_id, organization)
-        if user:
+        try:
+            org_user = OrgUser.objects.select_related('user').get(
+                user_id=user_id, organization=organization)
             return Response(
                 dict(
-                    user=UserSerializer(user).data,
-                    role=get_user_role(user),
-                    permissions=get_user_permissions(user)
+                    user=UserSerializer(org_user.user).data,
+                    role=get_user_role(org_user.user),
+                    permissions=get_user_permissions(org_user.user)
                 ),
                 status=200)
-        return ErrorMessage(
-            title='User Not Found',
-            detail='User not found.',
-            instance=request.build_absolute_uri(),
-            status=404,
-            code='UserNotFound',
-        ).to_response()
+        except OrgUser.DoesNotExist:
+            return ErrorMessage(
+                title='User Not Found',
+                detail='User not found.',
+                instance=request.build_absolute_uri(),
+                status=404,
+                code='UserNotFound',
+            ).to_response()

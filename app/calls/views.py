@@ -4,35 +4,22 @@ from utils.error_handling.error_message import ErrorMessage
 from decouple import config
 # Twilio
 from twilio.twiml.voice_response import VoiceResponse
-from twilio.rest import Client
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VoiceGrant
 from .decorators import validate_twilio_request
 # User Imports
 from users.permissions import HasSessionOrTokenActive
 from users.api import get_request_user
-
-
-@api_view(['POST'])
-@permission_classes([HasSessionOrTokenActive])
-def make_call(request):
-    phone_number = request.data.get('phone_number')
-    account_sid = config('TWILIO_ACCOUNT_SID')
-    auth_token = config('TWILIO_AUTH_TOKEN')
-    client = Client(account_sid, auth_token)
-
-    call = client.calls.create(
-        url="http://demo.twilio.com/docs/voice.xml",
-        to=phone_number,
-        from_=config('TWILIO_PHONE_NUMBER')
-    )
-
-    return JsonResponse({"call_id": call.sid}, status=200, safe=False)
+from roles.permissions import HasPermission
+from .base_permissions import MAKE_CALL
 
 
 @api_view(['GET'])
-@permission_classes([HasSessionOrTokenActive])
+@permission_classes([HasSessionOrTokenActive, HasPermission(MAKE_CALL)])
 def grant_twilio_token(request):
+    """
+    Generate a Twilio token for the user to make a call.
+    """
     account_sid = config('TWILIO_ACCOUNT_SID')
     api_key = config('TWILIO_API_KEY')
     api_secret = config('TWILIO_API_KEY_SECRET')
@@ -58,6 +45,15 @@ def grant_twilio_token(request):
 @api_view(['POST'])
 @validate_twilio_request
 def twiml(request):
+    """
+    This endpoint is called by Twilio to get the TwiML for the call.
+    Twilio authenticates by checking the token that is produced by
+    the grant_twilio_token endpoint. This check happens on Twilio
+    servers.
+
+    This does not make a call happen, this just returns the TwiML
+    that Twilio will use to make the call.
+    """
     data = dict(request.data)
 
     if 'To' not in data:

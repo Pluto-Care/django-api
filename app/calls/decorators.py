@@ -3,8 +3,6 @@ from functools import wraps
 from twilio.request_validator import RequestValidator
 from decouple import config
 
-import os
-
 
 def validate_twilio_request(f):
     """Validates that incoming requests genuinely originated from Twilio"""

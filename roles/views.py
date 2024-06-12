@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from utils.error_handling.error_message import ErrorMessage
-from organizations.api import get_org_user, get_user_org
+from organizations.api import get_org_user_from_id, get_user_org
 from users.api import get_request_user
 from users.permissions import HasSessionOrTokenActive
 from .permissions import HasPermission
@@ -26,7 +26,7 @@ def update_permissions(request):
     if isinstance(requested_permissions, list):
         user_id = request.data['user_id']
         organization = get_user_org(get_request_user(request))
-        actioned_user = get_org_user(user_id, organization)
+        actioned_user = get_org_user_from_id(user_id, organization)
         if actioned_user is None:
             return ErrorMessage(
                 title='User Not Found',
