@@ -2,7 +2,9 @@ import uuid
 from django.utils.timezone import now
 from django.db import models
 from app.patients.models import Patient
-from organizations.models import OrgUser, Organization
+from organizations.models import Organization
+from users.models import User
+from .managers import AppointmentManager
 
 
 class Appointment(models.Model):
@@ -21,12 +23,14 @@ class Appointment(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=now)
     created_by = models.ForeignKey(
-        OrgUser, on_delete=models.SET_NULL, null=True, related_name='appointment_created_by')
+        User, on_delete=models.SET_NULL, null=True, related_name='appointment_created_by')
     assigned_to = models.ForeignKey(
-        OrgUser, on_delete=models.SET_NULL, null=True, related_name='appointment_assigned_to')
+        User, on_delete=models.SET_NULL, null=True, related_name='appointment_assigned_to')
     updated_at = models.DateTimeField(default=now)
     updated_by = models.ForeignKey(
-        OrgUser, on_delete=models.SET_NULL, null=True, related_name='appointment_updated_by')
+        User, on_delete=models.SET_NULL, null=True, related_name='appointment_updated_by')
+
+    objects = AppointmentManager()
 
     class Meta:
         indexes = [

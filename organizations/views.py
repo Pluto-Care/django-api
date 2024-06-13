@@ -1,3 +1,5 @@
+from django.utils.encoding import force_str
+from django.db.models import Q
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -139,16 +141,30 @@ def get_org_users(request):
     Get all users in the organization
     """
     organization = get_user_org(get_request_user(request))
-    if organization is None:
-        return ErrorMessage(
-            title='Organization Not Found',
-            detail='Organization not found.',
-            instance=request.build_absolute_uri(),
-            status=404,
-            code='OrgNotFound',
-        ).to_response()
     org_users = OrgUser.objects.select_related(
         'user').filter(organization=organization)
+    users = [org_user.user for org_user in org_users]
+    return Response(data=UserSerializer(users, many=True).data, status=200)
+
+
+@api_view(['POST'])
+@permission_classes([HasSessionOrTokenActive, HasPermission(READ_ALL_USERS)])
+def search_org_users(request):
+    """
+    Search for users in the organization
+    """
+    organization = get_user_org(get_request_user(request))
+    keyword = force_str(request.data['keyword'])
+    if keyword is None or keyword == '':
+        return ErrorMessage(
+            title='Keyword Required',
+            detail='Keyword is required.',
+            instance=request.build_absolute_uri(),
+            status=400,
+            code='KeywordRequired',
+        ).to_response()
+    org_users = OrgUser.objects.select_related(
+        'user').filter(Q(organization=organization), Q(user__first_name__startswith=keyword) | Q(user__last_name__startswith=keyword))
     users = [org_user.user for org_user in org_users]
     return Response(data=UserSerializer(users, many=True).data, status=200)
 

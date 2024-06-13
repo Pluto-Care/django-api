@@ -1,3 +1,4 @@
+from django.utils.encoding import force_str
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -5,7 +6,7 @@ from users.permissions import HasSessionOrTokenActive
 from roles.permissions import HasPermission
 from .base_permissions import VIEW_ALL_PATIENTS, CREATE_PATIENTS, UPDATE_PATIENTS, DELETE_PATIENTS
 from .models import Patient
-from .serializers import PatientSerializer
+from .serializers import PatientSerializer, SearchPatientSerializer
 
 
 @api_view(['GET'])
@@ -13,6 +14,14 @@ from .serializers import PatientSerializer
 def listPatients(request):
     patients = Patient.objects.list_patients(request)
     return Response(PatientSerializer(patients, many=True).data, status=200)
+
+
+@api_view(['POST'])
+@permission_classes([HasSessionOrTokenActive, HasPermission(VIEW_ALL_PATIENTS)])
+def search_patient(request):
+    keyword = force_str(request.data['keyword'])
+    patients = Patient.objects.search_patient(request, keyword)
+    return Response(SearchPatientSerializer(patients, many=True).data, status=200)
 
 
 @api_view(['POST'])
@@ -38,12 +47,12 @@ class PatientView(APIView):
         return [HasPermission("patient_view_reject")]
 
     def get(self, request, *args, **kwargs):
-        patient_id = self.kwargs.get('patient_id')
+        patient_id = force_str(self.kwargs.get('patient_id'))
         patient = Patient.objects.view_patient(request, patient_id)
         return Response(PatientSerializer(patient).data, status=200)
 
     def put(self, request, *args, **kwargs):
-        patient_id = self.kwargs.get('patient_id')
+        patient_id = force_str(self.kwargs.get('patient_id'))
         serializer = PatientSerializer(data=request.data)
         if serializer.is_valid():
             patient = Patient.objects.update_patient(
@@ -52,6 +61,6 @@ class PatientView(APIView):
         return Response(serializer.errors, status=400)
 
     def delete(self, request, *args, **kwargs):
-        patient_id = self.kwargs.get('patient_id')
+        patient_id = force_str(self.kwargs.get('patient_id'))
         Patient.objects.delete_patient(request, patient_id)
         return Response(status=204)

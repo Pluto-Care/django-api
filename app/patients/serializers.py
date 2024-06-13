@@ -30,3 +30,16 @@ class PatientSerializer(serializers.ModelSerializer):
             'email': {'validators': [validate_email]},
             'first_name': {'required': True},
             'last_name': {'required': True}}
+
+
+class SearchPatientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        fields = ['id', 'first_name', 'last_name', 'phone', 'city', 'state']
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'first_name': {'read_only': True},
+            'last_name': {'read_only': True},
+            'phone': {'read_only': True},
+            'city': {'read_only': True},
+            'state': {'read_only': True}}

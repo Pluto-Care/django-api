@@ -4,6 +4,15 @@ from users.api import get_request_user
 
 
 class PatientManager(models.Manager):
+    """
+    This manager works with the Patient model to provide CRUD operations.
+
+    IMPORTANT: Check if the organization of the user making the request
+    is the same as the organization of the patient. Otherwise, this is a
+    big security risk. Do not make custom queries and use the ones available
+    in this model manager.
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -44,3 +53,11 @@ class PatientManager(models.Manager):
                 'You are not authorized to delete this patient')
         patient.delete()
         return True
+
+    def search_patient(self, request, keyword):
+        organization = get_user_org(get_request_user(request))
+        patients = self.model.objects.filter(
+            models.Q(first_name__startswith=keyword) | models.Q(
+                last_name__startswith=keyword),
+            organization=organization).values('id', 'first_name', 'last_name', 'phone', 'city', 'state')
+        return patients
