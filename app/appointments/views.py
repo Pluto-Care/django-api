@@ -44,7 +44,7 @@ def create_appointment(request):
 def list_appointments(request):
     organization = get_user_org(get_request_user(request))
     appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by').filter(
-        organization=organization).order_by('created_at')
+        organization=organization).order_by('-created_at')
     result = []
     for appointment in appointments:
         serialized = AppointmentSerializer(appointment).data
@@ -156,7 +156,7 @@ class MyAppointmentView(APIView):
 def my_appointments(request):
     organization = get_user_org(get_request_user(request))
     appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by').filter(
-        organization=organization, assigned_to=get_request_user(request)).order_by('created_at')
+        organization=organization, assigned_to=get_request_user(request)).order_by('-created_at')
     result = []
     for appointment in appointments:
         serialized = AppointmentSerializer(appointment).data
