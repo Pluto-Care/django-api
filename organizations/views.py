@@ -35,14 +35,6 @@ class OrgProfileView(APIView):
         Get organization profile
         """
         organization = get_user_org(get_request_user(request))
-        if organization is None:
-            return ErrorMessage(
-                title='Organization Not Found',
-                detail='Organization not found.',
-                instance=request.build_absolute_uri(),
-                status=404,
-                code='OrgNotFound',
-            ).to_response()
         # Get profile
         try:
             org_profile = OrgProfile.objects.get(organization=organization)
@@ -62,14 +54,6 @@ class OrgProfileView(APIView):
         Update organization profile
         """
         organization = get_user_org(get_request_user(request))
-        if organization is None:
-            return ErrorMessage(
-                title='Organization Not Found',
-                detail='Organization not found.',
-                instance=request.build_absolute_uri(),
-                status=404,
-                code='OrgNotFound',
-            ).to_response()
         try:
             org_profile = OrgProfile.objects.get(organization=organization)
             # Update profile
@@ -99,15 +83,6 @@ class OrgProfileView(APIView):
         Create organization profile
         """
         organization = get_user_org(get_request_user(request))
-        # Check if org exist
-        if organization is not None:
-            return ErrorMessage(
-                title='Organization Already Exists',
-                detail='Organization already exists.',
-                instance=request.build_absolute_uri(),
-                status=400,
-                code='OrgAlreadyExists',
-            ).to_response()
         # Check if org profile already exist
         org_profile_exists = OrgProfile.objects.filter(
             organization=organization).exists()
@@ -176,14 +151,6 @@ def create_org_user(request):
     Create a new user in the organization
     """
     organization = get_user_org(get_request_user(request))
-    if organization is None:
-        return ErrorMessage(
-            title='Organization Not Found',
-            detail='Organization not found.',
-            instance=request.build_absolute_uri(),
-            status=404,
-            code='OrgNotFound',
-        ).to_response()
     serializer = AddUserSerializer(data=request.data)
     if serializer.is_valid() is False:
         return ErrorMessage(
