@@ -80,8 +80,6 @@ class Break(models.Model):
         constraints = [
             models.CheckConstraint(check=models.Q(
                 end_time__gt=models.F('start_time')), name='break_end_time_gt_start_time'),
-            models.CheckConstraint(check=models.Q(
-                end_date__gt=models.F('start_date')), name='break_end_date_gt_start_date'),
         ]
 
     def __str__(self):

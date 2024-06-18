@@ -37,10 +37,13 @@ class PatientManager(models.Manager):
         return patient
 
     def list_patients(self, request):
-        return self.model.objects.filter(organization=get_user_org(get_request_user(request)))
+        return self.model.objects.filter(organization=get_user_org(get_request_user(request)), mark_deleted=False)
 
     def view_patient(self, request, patient_id):
-        patient = self.model.objects.get(id=patient_id)
+        try:
+            patient = self.model.objects.get(id=patient_id, mark_deleted=False)
+        except self.model.DoesNotExist:
+            raise self.model.DoesNotExist('Patient not found')
         if get_user_org(get_request_user(request)) != patient.organization:
             raise PermissionError(
                 'You are not authorized to view this patient')
@@ -51,7 +54,8 @@ class PatientManager(models.Manager):
         if get_user_org(get_request_user(request)) != patient.organization:
             raise PermissionError(
                 'You are not authorized to delete this patient')
-        patient.delete()
+        patient.mark_deleted = True
+        patient.save()
         return True
 
     def search_patient(self, request, keyword):
@@ -59,5 +63,5 @@ class PatientManager(models.Manager):
         patients = self.model.objects.filter(
             models.Q(first_name__startswith=keyword) | models.Q(
                 last_name__startswith=keyword),
-            organization=organization).values('id', 'first_name', 'last_name', 'phone', 'city', 'state')
+            organization=organization, mark_deleted=False).values('id', 'first_name', 'last_name', 'phone', 'city', 'state')
         return patients
