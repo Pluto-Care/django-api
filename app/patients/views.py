@@ -86,7 +86,7 @@ class PatientView(APIView):
 @api_view(['GET'])
 @permission_classes([HasSessionOrTokenActive])
 def get_patient_notes(request, patient_id):
-    organization = get_user_org(request)
+    organization = get_user_org(get_request_user(request))
     patient_notes = PatientNote.objects.filter(Q(patient__organization=organization) & Q(
         patient__id=patient_id) & Q(mark_deleted=False)).order_by('-created_at')
     return Response(PatientNoteSerializer(patient_notes, many=True).data, status=200)
@@ -95,9 +95,11 @@ def get_patient_notes(request, patient_id):
 @api_view(['POST'])
 @permission_classes([HasSessionOrTokenActive])
 def create_patient_note(request, patient_id):
-    serializer = PatientNoteSerializer(data=request.data)
+    serializer = PatientNoteSerializer(data={
+        'note': force_str(request.data['note']),
+        'patient': patient_id
+    })
     if serializer.is_valid():
-        patient_id = serializer.validated_data['patient']
         note_text = serializer.validated_data['note']
         # Check if the patient belongs to the organization
         try:
@@ -113,7 +115,7 @@ def create_patient_note(request, patient_id):
             ).to_response()
         note = PatientNote.objects.create(
             patient=patient,
-            note=force_str(note_text),
+            note=note_text,
             created_by=get_request_user(request)
         )
         return Response(PatientNoteSerializer(note).data, status=201)
@@ -129,7 +131,7 @@ def create_patient_note(request, patient_id):
 class PatientNoteView(APIView):
 
     def get(self, request, *args, **kwargs):
-        organization = get_user_org(request)
+        organization = get_user_org(get_request_user(request))
         note_id = force_str(self.kwargs.get('note_id'))
         note = PatientNote.objects.get(
             id=note_id, patient__organization=organization)
@@ -184,7 +186,7 @@ class PatientNoteView(APIView):
         note_id = force_str(self.kwargs.get('note_id'))
         try:
             note = PatientNote.objects.get(
-                id=note_id, patient__organization=get_user_org(request))
+                id=note_id, patient__organization=get_user_org(get_request_user(request)))
         except PatientNote.DoesNotExist:
             return ErrorMessage(
                 title='Note not found',
