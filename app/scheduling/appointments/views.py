@@ -137,6 +137,20 @@ def my_appointments(request):
     return Response(format_appointments(appointments), status=200)
 
 
+@api_view(['GET'])
+@permission_classes([HasSessionOrTokenActive])
+def my_appointments_for_date(request, date):
+    organization = get_user_org(get_request_user(request))
+    date_obj = datetime.datetime.strptime(force_str(date), '%m-%d-%Y').date()
+    today_min = datetime.datetime.combine(
+        date_obj, datetime.time.min, datetime.timezone.utc)
+    today_max = datetime.datetime.combine(
+        date_obj, datetime.time.max, datetime.timezone.utc)
+    appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by').filter(
+        organization=organization, assigned_to=get_request_user(request), start_time__range=(today_min, today_max)).order_by('-created_at')
+    return Response(format_appointments(appointments), status=200)
+
+
 # Fomat the appointment data
 def format_appointments(appointments):
     result = []
