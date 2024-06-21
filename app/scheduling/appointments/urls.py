@@ -12,7 +12,8 @@ urlpatterns = [
     path('my/list/', views.my_appointments),
 
     # date: '06-13-2024' (format: MM-DD-YYYY)
-    path('my/list/<str:date>/', views.my_appointments_for_date),
+    path('my/date/<str:date>/', views.my_appointments_for_date),
 
-    path('my/list/<str:appointment_id>/', views.MyAppointmentView.as_view())
+    path('my/list/<str:appointment_id>/', views.MyAppointmentView.as_view()),
+    path('my/list/<str:appointment_id>/patient/', views.get_appointment_patient),
 ]

@@ -9,9 +9,9 @@ from .managers import PatientManager
 
 class Patient(models.Model):
     sex_choices = [
-        ('male', 'Male'),
-        ('female', 'Female'),
-        ('other', 'Other')
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Other', 'Other')
     ]
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     first_name = models.CharField(max_length=255)

@@ -21,7 +21,7 @@ class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = ['id', 'first_name', 'last_name', 'dob', 'street', 'city',
-                  'state', 'postal_code', 'country', 'phone', 'email',
+                  'state', 'postal_code', 'country', 'phone', 'email', 'sex',
                   'created_at', 'updated_at', 'created_by', 'updated_by', 'organization']
         extra_kwargs = {
             'created_at': {'read_only': True},

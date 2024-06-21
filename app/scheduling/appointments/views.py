@@ -11,6 +11,7 @@ from .base_permissions import MODIFY_APPOINTMENTS, VIEW_APPOINTMENTS, MAKE_APPOI
 from .models import Appointment, Cancellation
 from .serializers import AppointmentSerializer
 from utils.error_handling.error_message import ErrorMessage
+from app.patients.serializers import PatientSerializer
 
 
 @api_view(['POST'])
@@ -114,9 +115,12 @@ class MyAppointmentView(APIView):
 
     def get(self, request, *args, **kwargs):
         appointment_id = self.kwargs.get('appointment_id')
+        organization = get_user_org(get_request_user(request))
         try:
             appointment = Appointment.objects.get_appointment(
-                appointment_id, assinged_to=get_request_user(request))
+                organization,
+                appointment_id,
+                assinged_to=get_request_user(request))
             return Response(AppointmentSerializer(appointment).data, status=200)
         except Appointment.DoesNotExist:
             return ErrorMessage(
@@ -149,6 +153,25 @@ def my_appointments_for_date(request, date):
     appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by').filter(
         organization=organization, assigned_to=get_request_user(request), start_time__range=(today_min, today_max)).order_by('-created_at')
     return Response(format_appointments(appointments), status=200)
+
+
+@api_view(['GET'])
+@permission_classes([HasSessionOrTokenActive])
+def get_appointment_patient(request, appointment_id):
+    organization = get_user_org(get_request_user(request))
+    try:
+        appointment = Appointment.objects.get_appointment(
+            organization, appointment_id)
+        patient = appointment.patient
+        return Response(data=PatientSerializer(patient).data, status=200)
+    except Appointment.DoesNotExist:
+        return ErrorMessage(
+            title='Appointment not found',
+            detail='The appointment you are looking for does not exist',
+            status=404,
+            instance=request.build_absolute_uri(),
+            code='AppointmentNotFound'
+        ).to_response()
 
 
 # Fomat the appointment data
