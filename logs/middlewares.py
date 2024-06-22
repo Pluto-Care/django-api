@@ -40,7 +40,7 @@ class APILogMiddleware:
         else:
             # check if content has key 'session_id', that means this
             # response is from login or signup API
-            if 'data' in content and 'user' in content['data']:
+            if 'data' in content and content['data'] is not None and 'user' in content['data']:
                 log = LogResponse(status=response.status_code, message=dict(
                     user=content['data']['user']['email']))
             else:
