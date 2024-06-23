@@ -5,8 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.permissions import HasSessionOrTokenActive
 from users.api import get_request_user
+from users.serializers import UserSerializer
 from organizations.api import get_user_org
 from roles.permissions import HasPermission
+from app.patients.serializers import PatientSerializer
 from .base_permissions import MODIFY_APPOINTMENTS, VIEW_APPOINTMENTS, MAKE_APPOINTMENTS
 from .models import Appointment, Cancellation
 from .serializers import AppointmentSerializer
@@ -17,8 +19,23 @@ from app.patients.serializers import PatientSerializer
 @api_view(['POST'])
 @permission_classes([HasSessionOrTokenActive, HasPermission(MAKE_APPOINTMENTS)])
 def create_appointment(request):
+    return _create_appointment(request)
+
+
+@api_view(['POST'])
+@permission_classes([HasSessionOrTokenActive])
+def create_my_appointment(request):
+    return _create_appointment(request, self=True)
+
+
+def _create_appointment(request, self=False):
     organization = get_user_org(get_request_user(request))
     created_by = get_request_user(request)
+    # Self
+    if self:
+        assigned_to = created_by.id
+    else:
+        assigned_to = force_str(request.data['assigned_to'])
     # Format: 'date': '2024-06-13T07:00:00.000Z', 'start_time': '10:30', 'duration': 30,
     start_at = datetime.datetime.strptime(
         force_str(request.data['date']),
@@ -33,7 +50,7 @@ def create_appointment(request):
     serializer = AppointmentSerializer(data=dict(
         patient=force_str(request.data['patient']),
         reason=force_str(request.data['reason']),
-        assigned_to=force_str(request.data['assigned_to']),
+        assigned_to=assigned_to,
         status=force_str(request.data['status']),
         type=force_str(request.data['type']),
         start_time=start_at,
@@ -72,9 +89,28 @@ class AdminAppointmentView(APIView):
 
     def get(self, request, *args, **kwargs):
         appointment_id = self.kwargs.get('appointment_id')
+        organization = get_user_org(get_request_user(request))
         try:
-            appointments = Appointment.objects.get_appointment(appointment_id)
-            return Response(AppointmentSerializer(appointments).data, status=200)
+            appointment = Appointment.objects.select_related(
+                'patient',
+                'created_by',
+                'updated_by',
+                'assigned_to'
+            ).get(
+                id=appointment_id,
+                organization=organization
+            )
+            res = dict(
+                appointment=AppointmentSerializer(appointment).data)
+            res = {
+                **res,
+                'patient': PatientSerializer(appointment.patient).data,
+                'created_by': UserSerializer(appointment.created_by).data,
+                'updated_by': UserSerializer(appointment.updated_by).data,
+                'assigned_to': UserSerializer(appointment.assigned_to).data,
+                'patient': PatientSerializer(appointment.patient).data,
+            }
+            return Response(res, status=200)
         except Appointment.DoesNotExist:
             return ErrorMessage(
                 title='Appointment not found',
@@ -117,11 +153,27 @@ class MyAppointmentView(APIView):
         appointment_id = self.kwargs.get('appointment_id')
         organization = get_user_org(get_request_user(request))
         try:
-            appointment = Appointment.objects.get_appointment(
-                organization,
-                appointment_id,
-                assinged_to=get_request_user(request))
-            return Response(AppointmentSerializer(appointment).data, status=200)
+            appointment = Appointment.objects.select_related(
+                'patient',
+                'created_by',
+                'updated_by',
+                'assigned_to'
+            ).get(
+                id=appointment_id,
+                organization=organization,
+                assigned_to=get_request_user(request)
+            )
+            res = dict(
+                appointment=AppointmentSerializer(appointment).data)
+            res = {
+                **res,
+                'patient': PatientSerializer(appointment.patient).data,
+                'created_by': UserSerializer(appointment.created_by).data,
+                'updated_by': UserSerializer(appointment.updated_by).data,
+                'assigned_to': UserSerializer(appointment.assigned_to).data,
+                'patient': PatientSerializer(appointment.patient).data,
+            }
+            return Response(res, status=200)
         except Appointment.DoesNotExist:
             return ErrorMessage(
                 title='Appointment not found',
@@ -153,6 +205,20 @@ def my_appointments_for_date(request, date):
     appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by').filter(
         organization=organization, assigned_to=get_request_user(request), start_time__range=(today_min, today_max)).order_by('-created_at')
     return Response(format_appointments(appointments), status=200)
+
+
+@api_view(['GET'])
+@permission_classes([HasSessionOrTokenActive])
+def my_appointment_patient_list(request):
+    organization = get_user_org(get_request_user(request))
+    appointments = Appointment.objects.select_related('patient').filter(
+        organization=organization,
+        assigned_to=get_request_user(request)
+    ).distinct('patient').order_by('-created_at')
+    patients = []
+    for appointment in appointments:
+        patients.append(appointment.patient)
+    return Response(PatientSerializer(patients, many=True).data, status=200)
 
 
 @api_view(['GET'])

@@ -22,7 +22,7 @@ def listPatients(request):
 
 
 @api_view(['POST'])
-@permission_classes([HasSessionOrTokenActive, HasPermission(VIEW_ALL_PATIENTS)])
+@permission_classes([HasSessionOrTokenActive])
 def search_patient(request):
     keyword = force_str(request.data['keyword'])
     patients = Patient.objects.search_patient(request, keyword)
