@@ -211,10 +211,11 @@ def my_appointments_for_date(request, date):
 @permission_classes([HasSessionOrTokenActive])
 def my_appointment_patient_list(request):
     organization = get_user_org(get_request_user(request))
+    # TODO: This should be distinct in PostgreSQL
     appointments = Appointment.objects.select_related('patient').filter(
         organization=organization,
         assigned_to=get_request_user(request)
-    ).distinct('patient').order_by('-created_at')
+    ).order_by('-created_at')
     patients = []
     for appointment in appointments:
         patients.append(appointment.patient)
