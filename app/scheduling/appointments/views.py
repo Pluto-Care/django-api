@@ -215,7 +215,7 @@ def my_appointment_patient_list(request):
     appointments = Appointment.objects.select_related('patient').filter(
         organization=organization,
         assigned_to=get_request_user(request)
-    ).order_by('-created_at')
+    ).order_by('patient__first_name', 'patient__last_name')
     patients = []
     for appointment in appointments:
         patients.append(appointment.patient)
