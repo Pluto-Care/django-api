@@ -203,7 +203,7 @@ def my_appointments_for_date(request, date):
     today_max = datetime.datetime.combine(
         date_obj, datetime.time.max, datetime.timezone.utc)
     appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by').filter(
-        organization=organization, assigned_to=get_request_user(request), start_time__range=(today_min, today_max)).order_by('-created_at')
+        organization=organization, assigned_to=get_request_user(request), start_time__range=(today_min, today_max)).order_by('created_at')
     return Response(format_appointments(appointments), status=200)
 
 
