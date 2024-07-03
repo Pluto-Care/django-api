@@ -9,7 +9,7 @@ from users.serializers import UserSerializer
 from organizations.api import get_user_org
 from roles.permissions import HasPermission
 from app.patients.serializers import PatientSerializer
-from .base_permissions import MODIFY_APPOINTMENTS, VIEW_APPOINTMENTS, MAKE_APPOINTMENTS
+from ..base_permissions import MODIFY_ALL_APPOINTMENTS, VIEW_ALL_APPOINTMENTS
 from .models import Appointment, Cancellation
 from .serializers import AppointmentSerializer
 from utils.error_handling.error_message import ErrorMessage
@@ -17,7 +17,7 @@ from app.patients.serializers import PatientSerializer
 
 
 @api_view(['POST'])
-@permission_classes([HasSessionOrTokenActive, HasPermission(MAKE_APPOINTMENTS)])
+@permission_classes([HasSessionOrTokenActive, HasPermission(MODIFY_ALL_APPOINTMENTS)])
 def create_appointment(request):
     return _create_appointment(request)
 
@@ -68,7 +68,7 @@ def _create_appointment(request, self=False):
 
 
 @api_view(['GET'])
-@permission_classes([HasSessionOrTokenActive, HasPermission(VIEW_APPOINTMENTS)])
+@permission_classes([HasSessionOrTokenActive, HasPermission(VIEW_ALL_APPOINTMENTS)])
 def list_appointments(request):
     organization = get_user_org(get_request_user(request))
     appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by', 'updated_by').filter(
@@ -80,11 +80,11 @@ class AdminAppointmentView(APIView):
 
     def get_permissions(self):
         if self.request.method == 'PUT':
-            return [HasSessionOrTokenActive(), HasPermission(MODIFY_APPOINTMENTS)]
+            return [HasSessionOrTokenActive(), HasPermission(MODIFY_ALL_APPOINTMENTS)]
         elif self.request.method == 'DELETE':
-            return [HasSessionOrTokenActive(), HasPermission(MODIFY_APPOINTMENTS)]
+            return [HasSessionOrTokenActive(), HasPermission(MODIFY_ALL_APPOINTMENTS)]
         elif self.request.method == 'GET':
-            return [HasSessionOrTokenActive(), HasPermission(VIEW_APPOINTMENTS)]
+            return [HasSessionOrTokenActive(), HasPermission(VIEW_ALL_APPOINTMENTS)]
         return [False]
 
     def get(self, request, *args, **kwargs):

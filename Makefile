@@ -1,7 +1,7 @@
 # Only to be used in development environment
 
 apps := users users_sessions users_totp logs users_forgot_password users_app_tokens organizations roles \
-patients appointments calls
+patients appointments calls breaks leaves availabilities scheduling
 
 .PHONY: all
 

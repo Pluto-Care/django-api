@@ -52,8 +52,9 @@ class Appointment(models.Model):
                 end_time__gt=models.F('start_time')), name='apt_end_time_gt_start_time'),
             models.CheckConstraint(check=models.Q(
                 end_time_expected__gt=models.F('start_time')), name='apt_end_time_expected_gt_start_time'),
-            models.CheckConstraint(check=models.Q(
-                start_time__gt=now()), name='apt_start_time_gt_now')
+            # TODO: Constraint failing
+            # models.CheckConstraint(check=models.Q(
+            #     start_time__gte=now()), name='apt_start_time_gt_now')
         ]
 
     def __str__(self):

@@ -12,6 +12,7 @@ class User(models.Model):
         max_length=150, unique=True, null=True, blank=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
+    timezone = models.CharField(max_length=150, default='America/Vancouver')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=now)
     created_by = models.ForeignKey(

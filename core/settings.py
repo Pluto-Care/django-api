@@ -46,8 +46,11 @@ INSTALLED_APPS = [
 
     'app.patients',
     'app.calls',
+    'app.scheduling',
     'app.scheduling.appointments',
     'app.scheduling.availabilities',
+    'app.scheduling.breaks',
+    'app.scheduling.leaves',
 ]
 
 MIDDLEWARE = [

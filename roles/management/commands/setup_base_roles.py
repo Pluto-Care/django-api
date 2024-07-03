@@ -3,8 +3,7 @@ from roles.models import Permission, Role
 from roles.base_permissions import base_permission, base_roles
 from app.patients.base_permissions import base_permission as patients_base_permission
 from app.calls.base_permissions import base_permission as calls_base_permission
-from app.scheduling.appointments.base_permissions import base_permission as appointments_base_permission
-from app.scheduling.availabilities.base_permissions import base_permission as availabilities_base_permission
+from app.scheduling.base_permissions import base_permission as scheduling_base_permission
 
 
 class Command(BaseCommand):
@@ -29,13 +28,8 @@ class Command(BaseCommand):
             permission = Permission(id=value['id'], name=value['name'])
             permission.save()
             permissions[value['id']] = permission
-        # Appointments App
-        for key, value in appointments_base_permission.items():
-            permission = Permission(id=value['id'], name=value['name'])
-            permission.save()
-            permissions[value['id']] = permission
-        # Availabilities App
-        for key, value in availabilities_base_permission.items():
+        # Scheduling App
+        for key, value in scheduling_base_permission.items():
             permission = Permission(id=value['id'], name=value['name'])
             permission.save()
             permissions[value['id']] = permission
