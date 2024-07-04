@@ -22,9 +22,7 @@ class Availability(models.Model):
         ]
         constraints = [
             models.CheckConstraint(check=models.Q(
-                end_time__gt=models.F('start_time')), name='avail_end_time_gt_start_time'),
-            models.CheckConstraint(check=models.Q(
-                end_date__gt=models.F('start_date')), name='avail_end_date_gt_start_date'),
+                end_date__gte=models.F('start_date')), name='avail_end_date_gte_start_date'),
         ]
 
     def __str__(self):
