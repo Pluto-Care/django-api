@@ -36,7 +36,7 @@ def get_request_user(request):
     return None
 
 
-def add_user(email, password, first_name, last_name, serilized=False):
+def add_user(email, password, first_name, last_name, created_by=None, serialized=False):
     """
     Add a new User
 
@@ -45,7 +45,8 @@ def add_user(email, password, first_name, last_name, serilized=False):
         password (str): User password
         first_name (str): User first name
         last_name (str): User last name
-        serilized (bool, optional): Return serialized User. Defaults to False.
+        created_by (User, optional): User object. Defaults to None.
+        serialized (bool, optional): Return serialized User. Defaults to False.
 
     Returns: User or None
     """
@@ -54,9 +55,10 @@ def add_user(email, password, first_name, last_name, serilized=False):
             email=email,
             password=password,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            created_by=created_by
         )
-        if serilized:
+        if serialized:
             return UserSerializer(data=account).data
         else:
             return account

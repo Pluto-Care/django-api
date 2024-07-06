@@ -17,11 +17,13 @@ def validate_email(value):
 
 
 def validate_password(value):
-    # Check if password is at least 8 characters long and contains at least one digit, one uppercase letter, one lowercase letter, and one special character
+    # Check if password is at least 8 characters long and contains at least one digit, one uppercase letter,
+    # one lowercase letter, and one special character
     regex = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[~#?!@$`\'":;.,%^&*-_+=<>|\/\{\}\[\]\(\)]).{8,}$'
     if not re.match(regex, value):
         raise serializers.ValidationError(
-            'Password must be at least 8 characters long and contain at least one digit, one uppercase alphabet, one lowercase alphabet, and one special character.')
+            'Password must be at least 8 characters long and contain at least one digit, one uppercase alphabet, '
+            'one lowercase alphabet, and one special character.')
     return value
 
 

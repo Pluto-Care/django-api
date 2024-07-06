@@ -4,12 +4,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.permissions import HasSessionOrTokenActive
-from users.api import get_request_user, add_user
-from users.serializers import UserSerializer, AddUserSerializer
+from users.api import get_request_user
+from users.serializers import UserSerializer
 from utils.error_handling.error_message import ErrorMessage
 from roles.permissions import HasPermission
-from roles.base_permissions import UPDATE_ORGANIZATION, READ_ALL_USERS, CREATE_NEW_USER
-from roles.api import get_user_role, get_user_permissions
+from roles.base_permissions import UPDATE_ORGANIZATION, READ_ALL_USERS
 from .api import get_user_org
 from .models import OrgUser, OrgProfile
 from .serializers import OrgProfileSerializer
@@ -78,7 +77,7 @@ class OrgProfileView(APIView):
                 code='OrgProfileNotFound',
             ).to_response()
 
-    def post(self, request, *args, **kwargs):
+    def post(request, *args, **kwargs):
         """
         Create organization profile
         """
@@ -138,85 +137,9 @@ def search_org_users(request):
             status=400,
             code='KeywordRequired',
         ).to_response()
-    org_users = OrgUser.objects.select_related(
-        'user').filter(Q(organization=organization), Q(user__first_name__startswith=keyword) | Q(user__last_name__startswith=keyword))
+    org_users = OrgUser.objects.select_related('user').filter(
+        Q(organization=organization),
+        Q(user__first_name__startswith=keyword) | Q(user__last_name__startswith=keyword)
+    )
     users = [org_user.user for org_user in org_users]
     return Response(data=UserSerializer(users, many=True).data, status=200)
-
-
-@api_view(['POST'])
-@permission_classes([HasSessionOrTokenActive, HasPermission(CREATE_NEW_USER)])
-def create_org_user(request):
-    """
-    Create a new user in the organization
-    """
-    organization = get_user_org(get_request_user(request))
-    serializer = AddUserSerializer(data=request.data)
-    if serializer.is_valid() is False:
-        return ErrorMessage(
-            title='Invalid User Creation',
-            detail=serializer.errors,
-            instance=request.build_absolute_uri(),
-            status=400,
-            code='UserCreationInvalid',
-        ).to_response()
-    user = add_user(
-        email=serializer.validated_data['email'],
-        password=serializer.validated_data['password'],
-        first_name=serializer.validated_data['first_name'],
-        last_name=serializer.validated_data['last_name']
-    )
-    if user:
-        OrgUser.objects.create_org_user(organization=organization, user=user)
-        return Response(UserSerializer(user).data, status=201)
-    return ErrorMessage(
-        title='Invalid User Creation',
-        detail='User creation failed.',
-        instance=request.build_absolute_uri(),
-        status=400,
-        code='UserCreationInvalid',
-    ).to_response()
-
-
-class OrgUserView(APIView):
-    """
-    Get user details for admin users
-    """
-
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return [HasSessionOrTokenActive(), HasPermission(READ_ALL_USERS)]
-        return [False]
-
-    def get(self, request, *args, **kwargs):
-        """
-        Get user details
-        """
-        user_id = self.kwargs.get('user_id')
-        if user_id is None:
-            return ErrorMessage(
-                title='User ID Required',
-                detail='User ID is required.',
-                instance=request.build_absolute_uri(),
-                status=400,
-                code='UserIDRequired',
-            ).to_response()
-        organization = get_user_org(get_request_user(request))
-        try:
-            org_user = OrgUser.objects.select_related('user').get(
-                user_id=user_id, organization=organization)
-            return Response(
-                dict(
-                    user=UserSerializer(org_user.user).data,
-                    role=get_user_role(org_user.user),
-                    permissions=get_user_permissions(org_user.user)
-                ),
-                status=200)
-        except OrgUser.DoesNotExist:
-            return ErrorMessage(
-                title='User Not Found',
-                detail='User not found.',
-                instance=request.build_absolute_uri(),
-                status=404,
-                code='UserNotFound',
-            ).to_response()
