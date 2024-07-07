@@ -8,6 +8,7 @@ from users.permissions import HasSessionOrTokenActive
 from roles.permissions import HasPermission
 from organizations.api import get_user_org
 from users.api import get_request_user
+from users.serializers import UserSerializer
 from .base_permissions import VIEW_ALL_PATIENTS, CREATE_PATIENTS, UPDATE_PATIENTS, DELETE_PATIENTS
 from .models import Patient, PatientNote
 from .serializers import PatientSerializer, SearchPatientSerializer, PatientNoteSerializer
@@ -54,7 +55,7 @@ class PatientView(APIView):
         elif self.request.method == 'DELETE':
             return [HasSessionOrTokenActive(), HasPermission(DELETE_PATIENTS)]
         elif self.request.method == 'GET':
-            return [HasSessionOrTokenActive(), HasPermission(VIEW_ALL_PATIENTS)]
+            return [HasSessionOrTokenActive()]
         return [HasPermission("patient_view_reject")]
 
     def get(self, request, *args, **kwargs):
@@ -87,9 +88,16 @@ class PatientView(APIView):
 @permission_classes([HasSessionOrTokenActive])
 def get_patient_notes(request, patient_id):
     organization = get_user_org(get_request_user(request))
-    patient_notes = PatientNote.objects.filter(Q(patient__organization=organization) & Q(
+    patient_notes = PatientNote.objects.select_related('patient__created_by', 'patient__updated_by').filter(Q(patient__organization=organization) & Q(
         patient__id=patient_id) & Q(mark_deleted=False)).order_by('-created_at')
-    return Response(PatientNoteSerializer(patient_notes, many=True).data, status=200)
+    response = []
+    for note in patient_notes:
+        response.append({
+            **PatientNoteSerializer(note).data,
+            'created_by': UserSerializer(note.created_by).data,
+            'updated_by': UserSerializer(note.updated_by).data
+        })
+    return Response(response, status=200)
 
 
 @api_view(['POST'])

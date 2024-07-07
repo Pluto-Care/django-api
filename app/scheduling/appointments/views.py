@@ -8,7 +8,6 @@ from users.api import get_request_user
 from users.serializers import UserSerializer
 from organizations.api import get_user_org
 from roles.permissions import HasPermission
-from app.patients.serializers import PatientSerializer
 from ..base_permissions import MODIFY_ALL_APPOINTMENTS, VIEW_ALL_APPOINTMENTS
 from .models import Appointment, Cancellation
 from .serializers import AppointmentSerializer
@@ -104,9 +103,8 @@ class AdminAppointmentView(APIView):
                 appointment=AppointmentSerializer(appointment).data)
             res = {
                 **res,
-                'patient': PatientSerializer(appointment.patient).data,
                 'created_by': UserSerializer(appointment.created_by).data,
-                'updated_by': UserSerializer(appointment.updated_by).data,
+                'updated_by': UserSerializer(appointment.updated_by).data if appointment.updated_by is not None else None,
                 'assigned_to': UserSerializer(appointment.assigned_to).data,
                 'patient': PatientSerializer(appointment.patient).data,
             }
@@ -167,9 +165,8 @@ class MyAppointmentView(APIView):
                 appointment=AppointmentSerializer(appointment).data)
             res = {
                 **res,
-                'patient': PatientSerializer(appointment.patient).data,
                 'created_by': UserSerializer(appointment.created_by).data,
-                'updated_by': UserSerializer(appointment.updated_by).data,
+                'updated_by': UserSerializer(appointment.updated_by).data if appointment.updated_by is not None else None,
                 'assigned_to': UserSerializer(appointment.assigned_to).data,
                 'patient': PatientSerializer(appointment.patient).data,
             }
