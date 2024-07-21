@@ -1,5 +1,6 @@
 from django.utils.encoding import force_str
 from django.db.models import Q
+from django.utils.timezone import now
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,7 +9,7 @@ from users.api import get_request_user
 from users.serializers import UserSerializer
 from utils.error_handling.error_message import ErrorMessage
 from roles.permissions import HasPermission
-from roles.base_permissions import UPDATE_ORGANIZATION, READ_ALL_USERS
+from roles.base_permissions import UPDATE_ORGANIZATION, READ_ALL_USERS, UPDATE_USER_PROFILE
 from .api import get_user_org
 from .models import OrgUser, OrgProfile
 from .serializers import OrgProfileSerializer
@@ -139,7 +140,53 @@ def search_org_users(request):
         ).to_response()
     org_users = OrgUser.objects.select_related('user').filter(
         Q(organization=organization),
-        Q(user__first_name__startswith=keyword) | Q(user__last_name__startswith=keyword)
+        Q(user__first_name__startswith=keyword) | Q(
+            user__last_name__startswith=keyword)
     )
     users = [org_user.user for org_user in org_users]
     return Response(data=UserSerializer(users, many=True).data, status=200)
+
+
+@api_view(['POST'])
+@permission_classes([HasSessionOrTokenActive, HasPermission(UPDATE_USER_PROFILE)])
+def update_org_user_profile(request, user_id):
+    """
+    Update user profile in the organization
+    """
+    organization = get_user_org(get_request_user(request))
+    try:
+        org_user = OrgUser.objects.select_related('user').get(
+            organization=organization, user__id=user_id)
+        data = dict(
+            email=force_str(request.data.get('email', org_user.user.email)),
+            first_name=force_str(request.data.get(
+                'first_name', org_user.user.first_name)),
+            last_name=force_str(request.data.get(
+                'last_name', org_user.user.last_name)),
+            is_active=force_str(request.data.get(
+                'is_active', org_user.user.is_active)),
+            timezone=force_str(request.data.get(
+                'timezone', org_user.user.timezone)),
+            updated_by=get_request_user(request).id,
+            updated_at=now()
+        )
+        serializer = UserSerializer(
+            org_user.user, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return ErrorMessage(
+            title='Invalid User Profile Update',
+            detail=serializer.errors,
+            instance=request.build_absolute_uri(),
+            status=400,
+            code='UserProfileUpdateInvalid',
+        ).to_response()
+    except OrgUser.DoesNotExist:
+        return ErrorMessage(
+            title='User Not Found',
+            detail='User not found in the organization.',
+            instance=request.build_absolute_uri(),
+            status=404,
+            code='UserNotFound',
+        ).to_response()
