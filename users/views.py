@@ -50,19 +50,19 @@ def login(request):
                     title='2FA code is incorrect',
                     code='TOTPIncorrect'
                 ).to_response()
-        # else:
-        #     # TODO: commented out for development purposes
-        #     # Create a MFA Join Token
-        #     mfa_join_token, _ = create_mfa_join_token(user, request)
-        #     response = Response(
-        #         data={
-        #             "mfa_join_token": mfa_join_token,
-        #             "detail": "MFA is required.",
-        #             "reason": "MFA_REQUIRED"
-        #         },
-        #         status=202
-        #     )
-        #     return response
+        else:
+            # TODO: commented out for development purposes
+            # Create a MFA Join Token
+            mfa_join_token, _ = create_mfa_join_token(user, request)
+            response = Response(
+                data={
+                    "mfa_join_token": mfa_join_token,
+                    "detail": "MFA is required.",
+                    "reason": "MFA_REQUIRED"
+                },
+                status=202
+            )
+            return response
         # Get last session details
         last_session = get_last_session_details(user)  # already serialized
         last_token_session = get_last_token_session_details(
