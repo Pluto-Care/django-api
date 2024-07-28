@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Patient, PatientNote
+from .models import Patient
 import re
 
 # Validators
@@ -43,15 +43,3 @@ class SearchPatientSerializer(serializers.ModelSerializer):
             'phone': {'read_only': True},
             'city': {'read_only': True},
             'state': {'read_only': True}}
-
-
-class PatientNoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PatientNote
-        fields = ['id', 'patient', 'note', 'created_at', 'updated_at',
-                  'created_by', 'updated_by']
-        extra_kwargs = {
-            'created_at': {'read_only': True},
-            'created_by': {'read_only': True},
-            'patient': {'required': True},
-            'note': {'required': True}}

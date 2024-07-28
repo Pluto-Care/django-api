@@ -78,7 +78,7 @@ class OrgProfileView(APIView):
                 code='OrgProfileNotFound',
             ).to_response()
 
-    def post(request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """
         Create organization profile
         """

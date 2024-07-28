@@ -1,5 +1,6 @@
 from django.http import JsonResponse, HttpResponse
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 from utils.error_handling.error_message import ErrorMessage
 from decouple import config
 # Twilio
@@ -12,6 +13,7 @@ from users.permissions import HasSessionOrTokenActive
 from users.api import get_request_user
 from roles.permissions import HasPermission
 from .base_permissions import MAKE_CALL
+from .models import OutgoingCallLog
 
 
 @api_view(['GET'])
@@ -69,4 +71,29 @@ def twiml(request):
         caller_id=config('TWILIO_PHONE_NUMBER'),
         answer_on_bridge=True
     ).number(data['To'][0])
+    # Create an outgoing call log
+    OutgoingCallLog.objects.create(
+        to=data['To'],
+        twilio_call_id=data['CallSid'],
+        user=get_request_user(request),
+        patient_id=data['patient_id'],
+        duration=0,
+        status='initiated'
+    )
+    # Return the TwiML
     return HttpResponse(vr.to_xml(), content_type='text/xml')
+
+
+@api_view(['POST'])
+@permission_classes([HasSessionOrTokenActive])
+def register_call_status(request):
+    data = dict(request.data)
+
+    if data['status'] == 'initiated':
+        return Response(status=200)
+    else:
+        call = OutgoingCallLog.objects.get(twilio_call_id=data['CallSid'])
+        call.status = data['status']
+        call.duration = data['duration']
+        call.save()
+        return Response(status=200)
