@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from django.utils.encoding import force_str
 from .models import MFAJoinToken
 from rest_framework.permissions import exceptions
 
@@ -14,10 +15,7 @@ class HasMFAJoinToken(permissions.BasePermission):
         if 'mfa_join_token' in request.data:
             # Get the MFAJoinToken object
             mfa_join_token = MFAJoinToken.objects.verify_token(
-                request.data['mfa_join_token'], request)
+                force_str(request.data['mfa_join_token']), request)
             if mfa_join_token:
-                print("mfa_join_token", True)
                 return True
-        print(request.data)
-        print("mfa_join_token", False)
         raise exceptions.ParseError(self.message)

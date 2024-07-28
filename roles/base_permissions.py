@@ -5,7 +5,6 @@ READ_ALL_USERS = dict(id="read:all_users", name="Read All Users")
 CREATE_NEW_USER = dict(id="create:new_user", name="Create New Users")
 UPDATE_USER_PROFILE = dict(id="update:user", name="Update User Profile")
 DELETE_USER = dict(id="delete:user", name="Delete User")
-DELETE_USER_MFA = dict(id="delete:user_mfa", name="Delete User MFA")
 UPDATE_USER_MFA = dict(id="update:user_mfa", name="Update User MFA")
 UPDATE_USER_PASSWORD = dict(
     id="update:user_password", name="Update User Password")
@@ -27,7 +26,6 @@ base_permission = dict(
     CREATE_NEW_USER=CREATE_NEW_USER,
     UPDATE_USER_PROFILE=UPDATE_USER_PROFILE,
     DELETE_USER=DELETE_USER,
-    DELETE_USER_MFA=DELETE_USER_MFA,
     UPDATE_USER_MFA=UPDATE_USER_MFA,
     UPDATE_USER_PASSWORD=UPDATE_USER_PASSWORD,
     DISABLE_USER=DISABLE_USER,
@@ -53,7 +51,6 @@ base_roles = [
             CREATE_NEW_USER,
             UPDATE_USER_PROFILE,
             DELETE_USER,
-            DELETE_USER_MFA,
             UPDATE_USER_MFA,
             UPDATE_USER_PASSWORD,
             DISABLE_USER,

@@ -122,7 +122,7 @@ def change_name(user, new_first_name, new_last_name):
         raise Exception(e)
 
 
-def disable_user(user):
+def disable_user(user: User):
     """
     Disable user
 

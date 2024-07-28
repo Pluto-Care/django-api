@@ -52,17 +52,17 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'All fields are required.')
         try:
-            user = User.objects.get(email=force_str(
-                data['email']), is_active=True)
+            user = User.objects.get(email=force_str(data['email']))
         except User.DoesNotExist:
             user = None
         if user:
+            # Check if user is active
+            if not user.is_active:
+                raise serializers.ValidationError(
+                    'Account is disabled. Please contact your administrator.')
             # Check if password is correct
             if not user.check_password(force_str(data['password'])):
                 raise serializers.ValidationError('Credentials are invalid.')
-            # Check if user is active
-            if not user.is_active:
-                raise serializers.ValidationError('Account is disabled.')
         else:
             raise serializers.ValidationError('Credentials are invalid.')
         return user

@@ -51,7 +51,6 @@ def login(request):
                     code='TOTPIncorrect'
                 ).to_response()
         else:
-            # TODO: commented out for development purposes
             # Create a MFA Join Token
             mfa_join_token, _ = create_mfa_join_token(user, request)
             response = Response(
@@ -129,7 +128,7 @@ def login(request):
         status=400,
         instance=request.build_absolute_uri(),
         title='Invalid credentials',
-        code='LoginSerializedErrors'
+        code='LoginSerializerErrors'
     )
     return err_msg.to_response()
 

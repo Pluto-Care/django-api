@@ -17,4 +17,10 @@ urlpatterns = [
          views_user.reset_org_user_password),
     path('manage/users/<str:user_id>/update_profile/',
          views.update_org_user_profile),
+    path('manage/users/<str:user_id>/disable_totp/',
+         views_user.disable_org_user_mfa),
+    path('manage/users/<str:user_id>/disable_user/',
+         views_user.disable_org_user_account),
+    path('manage/users/<str:user_id>/enable_user/',
+         views_user.enable_org_user_account),
 ]

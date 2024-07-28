@@ -54,6 +54,18 @@ def authenticate_totp(user, token, totp_row=None):
     return True if Totp.objects.authenticate(user, token, totp_row) else False
 
 
+def disable_totp(user):
+    """
+    Disable the TOTP for the user
+
+    Args:
+        user (User): Model object
+
+    Returns: bool
+    """
+    return Totp.objects.disable_totp(user)
+
+
 def create_mfa_join_token(user, request):
     """
     Create a new MFA join token
