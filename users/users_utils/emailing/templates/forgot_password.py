@@ -6,7 +6,7 @@ def forgot_password_template(first_name, url, ip, email_subject='Reset your pass
         subject=email_subject,
         headline="Forgot your password?",
         message=[
-            'Hi' + first_name + ',',
+            'Hi ' + first_name + ',',
             'We received a request to reset your password. Use the button below to reset your password.',
             '',
             'If you did not request a password reset, please ignore this email.',
