@@ -6,7 +6,7 @@ def new_user_account_template(first_name, url, email_subject='Welcome to Pluto H
         subject=email_subject,
         headline="Let's get you upto speed!",
         message=[
-            'Hi' + first_name + ',',
+            'Hi ' + first_name + ',',
             'We are excited to have you onboard.',
             'Use the button below to activate your account.',
         ],
