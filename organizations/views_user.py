@@ -3,9 +3,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.permissions import HasSessionOrTokenActive
-from users.api import get_request_user, add_user, change_password, disable_user, enable_user
-from users.serializers import UserSerializer, AddUserSerializer, PasswordSerializer
+from users.api import get_request_user, add_user, change_password, disable_user, enable_user, get_user_password_change
+from users.serializers import UserSerializer, AddUserSerializer, PasswordSerializer, UserPasswordChangeSerializer
 from users.users_totp.api import disable_totp
+from users.models import UserPasswordChange
 from utils.error_handling.error_message import ErrorMessage
 from roles.permissions import HasPermission
 from roles.base_permissions import READ_ALL_USERS, CREATE_NEW_USER, UPDATE_USER_PASSWORD, UPDATE_USER_MFA, DISABLE_USER, ENABLE_USER
@@ -76,6 +77,7 @@ class OrgUserView(APIView):
         try:
             org_user = OrgUser.objects.select_related('user', 'user__created_by', 'user__updated_by').get(
                 user_id=user_id, organization=organization)
+            pswd_change_row = get_user_password_change(org_user.user)
             return Response(
                 dict(
                     user=UserSerializer(org_user.user).data,
@@ -84,7 +86,9 @@ class OrgUserView(APIView):
                     created_by=UserSerializer(
                         org_user.user.created_by).data if org_user.user.created_by else None,
                     updated_by=UserSerializer(
-                        org_user.user.updated_by).data if org_user.user.updated_by else None
+                        org_user.user.updated_by).data if org_user.user.updated_by else None,
+                    password_change=UserPasswordChangeSerializer(
+                        pswd_change_row).data if pswd_change_row else None
                 ),
                 status=200)
         except OrgUser.DoesNotExist:
@@ -118,6 +122,8 @@ def reset_org_user_password(request, user_id):
             ).to_response()
         try:
             change_password(user, new_password)
+            UserPasswordChange.objects.save_due_change_by_admin(
+                user, get_request_user(request))
         except Exception as e:
             return ErrorMessage(
                 title='Password Reset Failed',

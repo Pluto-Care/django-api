@@ -1,10 +1,13 @@
 from django.utils.encoding import force_str
+from django.utils.timezone import now
 from decouple import config
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from utils.error_handling.error_message import ErrorMessage
 from users.serializers import PasswordSerializer
 from users.users_utils.emailing.api import send_forgot_password_email, send_password_changed_email
+from users.models import UserPasswordChange
+from users.api import get_user_password_change
 from .models import ForgotPassword
 from .serializers import HealthyForgotPasswordSerializer
 from .utils import KEY_LENGTH, getClientIP
@@ -80,6 +83,19 @@ def reset_password(request):
         )
         return err.to_response()
     fp = serializer.validated_data
+    # Check if password change is not locked
+    pswd_change_row = get_user_password_change(fp.user)
+    if pswd_change_row and now() < pswd_change_row.pswd_change_lock_til:
+        # Set fp as used
+        fp.set_used()
+        err = ErrorMessage(
+            title='Password Change Locked',
+            status=400,
+            detail='Password change is locked due to too many recent changes. Request an administrator to change password.',
+            instance=request.get_full_path(),
+            code="PasswordChangeLocked"
+        )
+        return err.to_response()
     # Validate password
     serializer = PasswordSerializer(data=request.data)
     if serializer.is_valid():
@@ -94,6 +110,8 @@ def reset_password(request):
             first_name=fp.user.first_name,
             subject='Password Changed'
         )
+        # Update Password Change table
+        UserPasswordChange.objects.save_due_forgot_password_form(fp.user)
         # Send empty success response
         return Response(status=204)
     else:

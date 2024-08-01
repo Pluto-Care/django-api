@@ -1,4 +1,4 @@
-from .models import User
+from .models import User, UserPasswordChange
 from core.middlewares import is_web
 # Session Imports
 from .users_sessions.utils import get_active_session
@@ -170,3 +170,18 @@ def delete_user(user):
         return user
     except Exception as e:
         raise Exception(e)
+
+
+def get_user_password_change(user):
+    """
+    Get UserPasswordChange object
+
+    Args:
+        user (User): User object
+
+    Returns: UserPasswordChange or None
+    """
+    try:
+        return UserPasswordChange.objects.get(user=user)
+    except UserPasswordChange.DoesNotExist:
+        return None

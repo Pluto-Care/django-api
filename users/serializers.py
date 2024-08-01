@@ -1,6 +1,6 @@
 from django.utils.encoding import force_str
 from rest_framework import serializers
-from .models import User
+from .models import User, UserPasswordChange
 import re
 
 # Validators
@@ -91,3 +91,15 @@ class AddUserSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'All fields are required.')
         return data
+
+
+class UserPasswordChangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPasswordChange
+        fields = [
+            'date_last_changed_by_user',
+            'date_last_changed_by_admin',
+            'last_changed_by_admin',
+            'last_pswd_change_method_by_user',
+            'pswd_change_lock_til',
+        ]

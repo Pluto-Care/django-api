@@ -171,7 +171,8 @@ DATABASE_ROUTERS = ["core.database_router.DatabaseRouter"]
 # Email
 # https://docs.djangoproject.com/en/5.0/topics/email/
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 def getEmailConnection():
