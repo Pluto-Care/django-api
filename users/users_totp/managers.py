@@ -169,17 +169,34 @@ class MFAJoinTokenManager(models.Manager):
     def verify_token(self, token, request):
         try:
             token = urlsafe_base64_decode(token).decode("ascii")
-            mfa_token = self.select_related('user').get(token=hash_this(token), ip=getClientIP(
-                request), ua=getUserAgent(request))
+            mfa_token = self.get(
+                token=hash_this(token),
+                ip=getClientIP(request),
+                ua=getUserAgent(request)
+            )
             if mfa_token.expire_at < now():
                 mfa_token.delete()
                 return None
             return mfa_token
         except Exception as e:
+            # TODO: Remove this debug info in production
+            print("Debug info for common error")
             print(e)
             print(hash_this(token))
             print(getClientIP(request))
             print(getUserAgent(request))
+            print("---TOKEN")
+            query = self.get(token=hash_this(token))
+            print(query.ip)
+            print(query.ua)
+            print("---IP")
+            query = self.get(ip=getClientIP(request))
+            print(query.ip)
+            print(query.ua)
+            print("---UA")
+            query = self.get(ua=getUserAgent(request))
+            print(query.ip)
+            print(query.ua)
             return None
 
     def consume_token(self, token):
