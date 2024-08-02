@@ -13,9 +13,9 @@ class GeneralNote(models.Model):
     created_at = models.DateTimeField(default=now)
     updated_at = models.DateTimeField(default=None, null=True)
     created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, related_name='patient_note_created_by')
+        User, on_delete=models.SET_NULL, null=True, related_name='patient_general_note_created_by')
     updated_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, related_name='patient_note_updated_by')
+        User, on_delete=models.SET_NULL, null=True, related_name='patient_general_note_updated_by')
     mark_deleted = models.BooleanField(default=False)
 
 
@@ -26,7 +26,7 @@ class DoctorNote(models.Model):
     created_at = models.DateTimeField(default=now)
     updated_at = models.DateTimeField(default=None, null=True)
     created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, related_name='patient_note_created_by')
+        User, on_delete=models.SET_NULL, null=True, related_name='patient_doc_note_created_by')
     updated_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, related_name='patient_note_updated_by')
+        User, on_delete=models.SET_NULL, null=True, related_name='patient_doc_note_updated_by')
     mark_deleted = models.BooleanField(default=False)
