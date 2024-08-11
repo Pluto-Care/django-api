@@ -1,4 +1,5 @@
 import datetime
+import pytz
 from django.utils.encoding import force_str
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -194,13 +195,14 @@ def my_appointments(request):
 @permission_classes([HasSessionOrTokenActive])
 def my_appointments_for_date(request, date):
     organization = get_user_org(get_request_user(request))
+    user_tz = get_request_user(request).timezone
     date_obj = datetime.datetime.strptime(force_str(date), '%m-%d-%Y').date()
     today_min = datetime.datetime.combine(
-        date_obj, datetime.time.min, datetime.timezone.utc)
+        date_obj, datetime.time.min, pytz.timezone(user_tz))
     today_max = datetime.datetime.combine(
-        date_obj, datetime.time.max, datetime.timezone.utc)
+        date_obj, datetime.time.max, pytz.timezone(user_tz))
     appointments = Appointment.objects.select_related('patient', 'assigned_to', 'created_by').filter(
-        organization=organization, assigned_to=get_request_user(request), start_time__range=(today_min, today_max)).order_by('created_at')
+        organization=organization, assigned_to=get_request_user(request), start_time__range=(today_min, today_max)).order_by('start_time')
     return Response(format_appointments(appointments), status=200)
 
 
