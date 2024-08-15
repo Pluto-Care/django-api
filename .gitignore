@@ -7,6 +7,7 @@ venv
 
 db/
 key.bin
+*.bin
 .tar.gz
 
 # django

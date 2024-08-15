@@ -72,14 +72,14 @@ def twiml(request):
         answer_on_bridge=True
     ).number(data['To'][0])
     # Create an outgoing call log
-    OutgoingCallLog.objects.create(
-        to=data['To'],
-        twilio_call_id=data['CallSid'],
-        user=get_request_user(request),
-        patient_id=data['patient_id'],
-        duration=0,
-        status='initiated'
-    )
+    # OutgoingCallLog.objects.create(
+    #     to=data['To'],
+    #     twilio_call_id=data['CallSid'],
+    #     user=get_request_user(request),
+    #     patient_id=data['patient_id'],
+    #     duration=0,
+    #     status='initiated'
+    # )
     # Return the TwiML
     return HttpResponse(vr.to_xml(), content_type='text/xml')
 
